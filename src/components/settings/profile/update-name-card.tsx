@@ -44,7 +44,7 @@ export function UpdateNameCard({ className }: UpdateNameCardProps) {
   const formSchema = z.object({
     name: z
       .string()
-      .min(3, { message: t('name.minLength') })
+      .min(2, { message: t('name.minLength') })
       .max(30, { message: t('name.maxLength') }),
   });
 

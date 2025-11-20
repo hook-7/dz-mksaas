@@ -10,7 +10,7 @@ import { sendEmail } from '@/mail';
 import { subscribe } from '@/newsletter';
 import { type User, betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import { admin } from 'better-auth/plugins';
+import { admin, phoneNumber } from 'better-auth/plugins';
 import { parse as parseCookies } from 'cookie';
 import type { Locale } from 'next-intl';
 import { getAllPricePlans } from './price-plan';
@@ -125,6 +125,26 @@ export const auth = betterAuth({
     },
   },
   plugins: [
+    phoneNumber({
+      // SMS OTP sender via Chuanglan (253)
+      sendOTP: async ({ phoneNumber, code }) => {
+        const { sendChuanglanOtp } = await import('./sms/chuanglan');
+        const result = await sendChuanglanOtp({
+          phoneNumber,
+          code,
+          codeType: 'login',
+        });
+        if (!result.success) {
+          throw new Error(result.message || 'Failed to send SMS');
+        }
+      },
+      // Allow sign up with just phone by fabricating an email; keeps schema happy.
+      signUpOnVerification: {
+        getTempEmail: (phone) =>
+          `${phone.replace(/\W/g, '') || 'phone'}@mksaas.local`,
+        getTempName: (phone) => phone,
+      },
+    }),
     // https://www.better-auth.com/docs/plugins/admin
     // support user management, ban/unban user, manage user roles, etc.
     admin({

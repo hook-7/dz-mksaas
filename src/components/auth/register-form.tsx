@@ -1,6 +1,5 @@
 'use client';
 
-import { validateCaptchaAction } from '@/actions/validate-captcha';
 import { AuthCard } from '@/components/auth/auth-card';
 import { FormError } from '@/components/shared/form-error';
 import { FormSuccess } from '@/components/shared/form-success';
@@ -14,19 +13,16 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { websiteConfig } from '@/config/website';
-import { authClient } from '@/lib/auth-client';
+import { normalizePhoneNumber } from '@/lib/phone';
 import { getUrlWithLocale } from '@/lib/urls/urls';
 import { DEFAULT_LOGIN_REDIRECT, Routes } from '@/routes';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { EyeIcon, EyeOffIcon, Loader2Icon } from 'lucide-react';
+import { Loader2Icon } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
-import { useRef, useState } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
+import { useEffect, useRef, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { Captcha } from '../shared/captcha';
-import { SocialLoginButton } from './social-login-button';
 
 interface RegisterFormProps {
   callbackUrl?: string;
@@ -36,141 +32,135 @@ export const RegisterForm = ({
   callbackUrl: propCallbackUrl,
 }: RegisterFormProps) => {
   const t = useTranslations('AuthPage.register');
+  const loginT = useTranslations('AuthPage.login');
   const searchParams = useSearchParams();
+  const urlError = searchParams.get('error');
   const paramCallbackUrl = searchParams.get('callbackUrl');
-  // Use prop callback URL or param callback URL if provided, otherwise use the default login redirect
   const locale = useLocale();
   const defaultCallbackUrl = getUrlWithLocale(DEFAULT_LOGIN_REDIRECT, locale);
-  // console.log('register form, propCallbackUrl', propCallbackUrl);
-  // console.log('register form, paramCallbackUrl', paramCallbackUrl);
-  // console.log('register form, defaultCallbackUrl', defaultCallbackUrl);
   const callbackUrl = propCallbackUrl || paramCallbackUrl || defaultCallbackUrl;
-  console.log('register form, callbackUrl', callbackUrl);
 
-  const [error, setError] = useState<string | undefined>('');
-  const [success, setSuccess] = useState<string | undefined>('');
-  const [isPending, setIsPending] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const captchaRef = useRef<any>(null);
+  const [phoneError, setPhoneError] = useState<string | undefined>('');
+  const [phoneSuccess, setPhoneSuccess] = useState<string | undefined>('');
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+  const [otpCooldown, setOtpCooldown] = useState(0);
+  const cooldownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Check if credential login is enabled
-  const credentialLoginEnabled = websiteConfig.auth.enableCredentialLogin;
+  useEffect(() => {
+    return () => {
+      if (cooldownTimerRef.current) {
+        clearInterval(cooldownTimerRef.current);
+        cooldownTimerRef.current = null;
+      }
+    };
+  }, []);
 
-  // turnstile captcha schema
-  const turnstileEnabled = websiteConfig.features.enableTurnstileCaptcha;
-  const captchaSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
-  const captchaConfigured = turnstileEnabled && !!captchaSiteKey;
-  const captchaSchema = captchaConfigured
-    ? z.string().min(1, 'Please complete the captcha')
-    : z.string().optional();
-
-  const RegisterSchema = z.object({
-    email: z.email({
-      message: t('emailRequired'),
+  const PhoneRegisterSchema = z.object({
+    phoneNumber: z.string().min(6, {
+      message: loginT('phoneRequired'),
     }),
-    password: z.string().min(1, {
-      message: t('passwordRequired'),
+    code: z.string().min(4, {
+      message: loginT('codeRequired'),
     }),
-    name: z.string().min(1, {
-      message: t('nameRequired'),
-    }),
-    captchaToken: captchaSchema,
   });
 
-  const form = useForm<z.infer<typeof RegisterSchema>>({
-    resolver: zodResolver(RegisterSchema),
+  const phoneForm = useForm<z.infer<typeof PhoneRegisterSchema>>({
+    resolver: zodResolver(PhoneRegisterSchema),
     defaultValues: {
-      email: '',
-      password: '',
-      name: '',
-      captchaToken: '',
+      phoneNumber: '',
+      code: '',
     },
   });
 
-  const captchaToken = useWatch({
-    control: form.control,
-    name: 'captchaToken',
-  });
-
-  // Function to reset captcha
-  const resetCaptcha = () => {
-    form.setValue('captchaToken', '');
-    // Try to reset the Turnstile widget if available
-    if (captchaRef.current && typeof captchaRef.current.reset === 'function') {
-      captchaRef.current.reset();
+  const startOtpCooldown = () => {
+    setOtpCooldown(60);
+    if (cooldownTimerRef.current) {
+      clearInterval(cooldownTimerRef.current);
     }
+    cooldownTimerRef.current = setInterval(() => {
+      setOtpCooldown((prev) => {
+        if (prev <= 1) {
+          if (cooldownTimerRef.current) {
+            clearInterval(cooldownTimerRef.current);
+            cooldownTimerRef.current = null;
+          }
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
   };
 
-  const onSubmit = async (values: z.infer<typeof RegisterSchema>) => {
-    // Validate captcha token if turnstile is enabled and site key is available
-    if (captchaConfigured && values.captchaToken) {
-      setIsPending(true);
-      setError('');
-      setSuccess('');
+  const sendOtp = async () => {
+    setPhoneError('');
+    setPhoneSuccess('');
+    if (otpCooldown > 0) return;
+    const validPhone = await phoneForm.trigger('phoneNumber');
+    if (!validPhone) return;
+    const sanitizedPhone = normalizePhoneNumber(
+      phoneForm.getValues('phoneNumber')
+    );
+    phoneForm.setValue('phoneNumber', sanitizedPhone, {
+      shouldValidate: true,
+    });
 
-      const captchaResult = await validateCaptchaAction({
-        captchaToken: values.captchaToken,
+    setIsSendingOtp(true);
+    try {
+      const res = await fetch('/api/auth/phone-number/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phoneNumber: sanitizedPhone,
+        }),
+        credentials: 'include',
       });
 
-      if (!captchaResult?.data?.success || !captchaResult?.data?.valid) {
-        console.error('register, captcha invalid:', values.captchaToken);
-        const errorMessage = captchaResult?.data?.error || t('captchaInvalid');
-        setError(errorMessage);
-        setIsPending(false);
-        resetCaptcha(); // Reset captcha on validation failure
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setPhoneError(data?.message || loginT('sendCodeFailed'));
         return;
       }
+      startOtpCooldown();
+    } catch (err) {
+      setPhoneError(loginT('sendCodeFailed'));
+      console.error('register send otp error', err);
+    } finally {
+      setIsSendingOtp(false);
     }
-
-    // 1. if requireEmailVerification is true, callbackURL will be used in the verification email,
-    // the user will be redirected to the callbackURL after the email is verified.
-    // 2. if requireEmailVerification is false, the user will not be redirected to the callbackURL,
-    // we should redirect to the callbackURL manually in the onSuccess callback.
-    await authClient.signUp.email(
-      {
-        email: values.email,
-        password: values.password,
-        name: values.name,
-        callbackURL: callbackUrl,
-      },
-      {
-        onRequest: (ctx) => {
-          // console.log('register, request:', ctx.url);
-          setIsPending(true);
-          setError('');
-          setSuccess('');
-        },
-        onResponse: (ctx) => {
-          // console.log('register, response:', ctx.response);
-          setIsPending(false);
-        },
-        onSuccess: (ctx) => {
-          // sign up success, user information stored in ctx.data
-          // console.log("register, success:", ctx.data);
-          setSuccess(t('checkEmail'));
-
-          // add affonso affiliate
-          // https://affonso.io/app/affiliate-program/connect
-          if (websiteConfig.features.enableAffonsoAffiliate) {
-            console.log('register, affonso affiliate:', values.email);
-            window.Affonso.signup(values.email);
-          }
-        },
-        onError: (ctx) => {
-          // sign up fail, display the error message
-          // console.error('register, error:', ctx.error);
-          setError(`${ctx.error.status}: ${ctx.error.message}`);
-          // Reset captcha on registration error
-          if (captchaConfigured) {
-            resetCaptcha();
-          }
-        },
-      }
-    );
   };
 
-  const togglePasswordVisibility = () => {
-    setShowPassword((prev) => !prev);
+  const onSubmitPhone = async (values: z.infer<typeof PhoneRegisterSchema>) => {
+    setPhoneError('');
+    setPhoneSuccess('');
+    const sanitizedPhone = normalizePhoneNumber(values.phoneNumber);
+    phoneForm.setValue('phoneNumber', sanitizedPhone, {
+      shouldValidate: true,
+    });
+    setIsVerifyingOtp(true);
+    try {
+      const res = await fetch('/api/auth/phone-number/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phoneNumber: sanitizedPhone,
+          code: values.code,
+        }),
+        credentials: 'include',
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setPhoneError(data?.message || loginT('verifyFailed'));
+        return;
+      }
+      setPhoneSuccess(loginT('signInSuccess'));
+      window.location.href = callbackUrl;
+    } catch (err) {
+      console.error('register verify otp error', err);
+      setPhoneError(loginT('verifyFailed'));
+    } finally {
+      setIsVerifyingOtp(false);
+    }
   };
 
   return (
@@ -179,115 +169,81 @@ export const RegisterForm = ({
       bottomButtonLabel={t('signInHint')}
       bottomButtonHref={`${Routes.Login}`}
     >
-      {credentialLoginEnabled && (
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="space-y-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('name')}</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        disabled={isPending}
-                        placeholder="name"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('email')}</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        disabled={isPending}
-                        placeholder="name@example.com"
-                        type="email"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('password')}</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Input
-                          {...field}
-                          disabled={isPending}
-                          placeholder="******"
-                          type={showPassword ? 'text' : 'password'}
-                          className="pr-10"
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                          onClick={togglePasswordVisibility}
-                          disabled={isPending}
-                        >
-                          {showPassword ? (
-                            <EyeOffIcon className="size-4 text-muted-foreground" />
-                          ) : (
-                            <EyeIcon className="size-4 text-muted-foreground" />
-                          )}
-                          <span className="sr-only">
-                            {showPassword
-                              ? t('hidePassword')
-                              : t('showPassword')}
-                          </span>
-                        </Button>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            <FormError message={error} />
-            <FormSuccess message={success} />
-            {captchaConfigured && (
-              <Captcha
-                ref={captchaRef}
-                onSuccess={(token) => form.setValue('captchaToken', token)}
-                validationError={form.formState.errors.captchaToken?.message}
-              />
-            )}
-            <Button
-              disabled={isPending || (captchaConfigured && !captchaToken)}
-              size="lg"
-              type="submit"
-              className="cursor-pointer w-full flex items-center justify-center gap-2"
-            >
-              {isPending && (
-                <Loader2Icon className="mr-2 size-4 animate-spin" />
+      <Form {...phoneForm}>
+        <form
+          onSubmit={phoneForm.handleSubmit(onSubmitPhone)}
+          className="mt-4 space-y-6"
+        >
+          <div className="space-y-4">
+            <FormField
+              control={phoneForm.control}
+              name="phoneNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{loginT('phone')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      disabled={isSendingOtp || isVerifyingOtp}
+                      placeholder=""
+                      type="tel"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
-              <span>{t('signUp')}</span>
-            </Button>
-          </form>
-        </Form>
-      )}
-      <div className="mt-4">
-        <SocialLoginButton
-          callbackUrl={callbackUrl}
-          showDivider={credentialLoginEnabled}
-        />
-      </div>
+            />
+            <div className="flex items-center gap-2">
+              <FormField
+                control={phoneForm.control}
+                name="code"
+                render={({ field }) => (
+                  <FormItem className="flex-1">
+                    <FormLabel>{loginT('code')}</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        disabled={isVerifyingOtp}
+                        placeholder=""
+                        inputMode="numeric"
+                        autoComplete="one-time-code"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                className="mt-6"
+                onClick={sendOtp}
+                disabled={isSendingOtp || isVerifyingOtp || otpCooldown > 0}
+              >
+                {isSendingOtp ? (
+                  <Loader2Icon className="mr-2 size-4 animate-spin" />
+                ) : null}
+                {otpCooldown > 0
+                  ? loginT('resendIn', { seconds: otpCooldown })
+                  : loginT('sendCode')}
+              </Button>
+            </div>
+          </div>
+          <FormError message={phoneError || urlError || undefined} />
+          <FormSuccess message={phoneSuccess} />
+          <Button
+            disabled={isVerifyingOtp}
+            size="lg"
+            type="submit"
+            className="w-full flex items-center justify-center gap-2 cursor-pointer"
+          >
+            {isVerifyingOtp && (
+              <Loader2Icon className="mr-2 size-4 animate-spin" />
+            )}
+            <span>{t('signUp')}</span>
+          </Button>
+        </form>
+      </Form>
     </AuthCard>
   );
 };
