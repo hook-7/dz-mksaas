@@ -1,6 +1,7 @@
 import {
   account,
   creditTransaction,
+  inviteLink,
   payment,
   session,
   storeUserRelationship,
@@ -17,3 +18,4 @@ export type Payment = typeof payment.$inferSelect;
 export type UserCredit = typeof userCredit.$inferSelect;
 export type CreditTransaction = typeof creditTransaction.$inferSelect;
 export type StoreUserRelationship = typeof storeUserRelationship.$inferSelect;
+export type InviteLink = typeof inviteLink.$inferSelect;

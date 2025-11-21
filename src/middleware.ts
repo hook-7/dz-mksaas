@@ -107,7 +107,18 @@ export default async function middleware(req: NextRequest) {
     );
   }
 
-  // Apply intlMiddleware for all routes
+  const shouldSkipIntl = shouldBypassIntl(nextUrl);
+  const shouldApplyIntl = req.method === 'GET' || req.method === 'HEAD';
+
+  if (
+    !shouldApplyIntl ||
+    (shouldSkipIntl && req.method !== 'GET' && req.method !== 'HEAD')
+  ) {
+    console.log('<< middleware end, skipping intlMiddleware');
+    return NextResponse.next();
+  }
+
+  // Apply intlMiddleware for eligible routes
   console.log('<< middleware end, applying intlMiddleware');
   return intlMiddleware(req);
 }
@@ -118,6 +129,18 @@ export default async function middleware(req: NextRequest) {
 function getPathnameWithoutLocale(pathname: string, locales: string[]): string {
   const localePattern = new RegExp(`^/(${locales.join('|')})/`);
   return pathname.replace(localePattern, '/');
+}
+
+function shouldBypassIntl(nextUrl: URL): boolean {
+  const pathnameWithoutLocale = getPathnameWithoutLocale(
+    nextUrl.pathname,
+    LOCALES
+  );
+
+  const isRegisterPath = pathnameWithoutLocale === '/auth/register';
+  const hasInvite = nextUrl.searchParams.has('invite');
+
+  return isRegisterPath && hasInvite;
 }
 
 /**

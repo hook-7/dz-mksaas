@@ -1,5 +1,6 @@
 'use client';
 
+import { acceptInviteLinkAction } from '@/actions/accept-invite-link';
 import { AuthCard } from '@/components/auth/auth-card';
 import { FormError } from '@/components/shared/form-error';
 import { FormSuccess } from '@/components/shared/form-success';
@@ -36,6 +37,7 @@ export const RegisterForm = ({
   const searchParams = useSearchParams();
   const urlError = searchParams.get('error');
   const paramCallbackUrl = searchParams.get('callbackUrl');
+  const inviteId = searchParams.get('invite');
   const locale = useLocale();
   const defaultCallbackUrl = getUrlWithLocale(DEFAULT_LOGIN_REDIRECT, locale);
   const callbackUrl = propCallbackUrl || paramCallbackUrl || defaultCallbackUrl;
@@ -154,6 +156,24 @@ export const RegisterForm = ({
         return;
       }
       setPhoneSuccess(loginT('signInSuccess'));
+
+      if (inviteId) {
+        try {
+          const acceptInviteResult = await acceptInviteLinkAction({
+            inviteId,
+          });
+          const acceptInvitePayload = acceptInviteResult?.data;
+          if (!acceptInvitePayload?.success) {
+            console.error(
+              'accept invite link error:',
+              acceptInvitePayload?.error
+            );
+          }
+        } catch (error) {
+          console.error('accept invite link unexpected error:', error);
+        }
+      }
+
       window.location.href = callbackUrl;
     } catch (err) {
       console.error('register verify otp error', err);
