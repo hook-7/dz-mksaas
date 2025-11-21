@@ -1,4 +1,5 @@
-import { boolean, integer, pgTable, text, timestamp, index } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { boolean, integer, pgTable, text, timestamp, index, uniqueIndex } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
 	id: text("id").primaryKey(),
@@ -126,3 +127,32 @@ export const creditTransaction = pgTable("credit_transaction", {
 	creditTransactionUserIdIdx: index("credit_transaction_user_id_idx").on(table.userId),
 	creditTransactionTypeIdx: index("credit_transaction_type_idx").on(table.type),
 }));
+
+export const storeUserRelationship = pgTable("store_user_relationship", {
+	id: text("id").primaryKey(),
+	storeId: text("store_id").notNull(),
+	parentUserId: text("parent_user_id").notNull().references(() => user.id, { onDelete: 'cascade' }),
+	childUserId: text("child_user_id").notNull().references(() => user.id, { onDelete: 'cascade' }),
+	relationshipRole: text("relationship_role").notNull(),
+	createdAt: timestamp("created_at").notNull().defaultNow(),
+	updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => ({
+	storeUserRelationshipUniqueIdx: uniqueIndex("store_user_relationship_store_parent_child_idx").on(table.storeId, table.parentUserId, table.childUserId),
+	storeUserRelationshipParentIdx: index("store_user_relationship_parent_idx").on(table.parentUserId),
+	storeUserRelationshipChildIdx: index("store_user_relationship_child_idx").on(table.childUserId),
+	storeUserRelationshipStoreIdx: index("store_user_relationship_store_idx").on(table.storeId),
+}));
+
+export const inviteLink = pgTable("invite_link", {
+	id: text("id").primaryKey(),
+	userId: text("user_id").notNull().references(() => user.id, { onDelete: 'cascade' }),
+	link: text("link").notNull(),
+	expiresAt: timestamp("expires_at").notNull().default(sql`now() + interval '24 hours'`),
+	createdAt: timestamp("created_at").notNull().defaultNow(),
+	updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => ({
+	inviteLinkUserIdIdx: index("invite_link_user_id_idx").on(table.userId),
+	inviteLinkExpiresAtIdx: index("invite_link_expires_at_idx").on(table.expiresAt),
+	inviteLinkLinkIdx: uniqueIndex("invite_link_link_idx").on(table.link),
+}));
+

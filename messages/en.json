@@ -720,6 +720,10 @@
           "never": "Never"
         }
       },
+      "connectedAccounts": {
+        "title": "Connected Accounts",
+        "description": "Manage your connected sub-accounts"
+      },
       "notification": {
         "title": "Notification",
         "description": "Manage your notification preferences",

@@ -720,6 +720,10 @@
           "never": "永不过期"
         }
       },
+      "connectedAccounts": {
+        "title": "关联账户",
+        "description": "管理您关联的子账户"
+      },
       "notification": {
         "title": "通知",
         "description": "管理您的通知设置",

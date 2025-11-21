@@ -4,13 +4,22 @@
       "command": "npx",
       "args": [
         "-y",
-        "@upstash/context7-mcp@latest"
+        "@upstash/context7-mcp@latest",
+        "--api-key",
+        "ctx7sk-c96f9e18-bafc-4c35-a1d2-0f63dbcdea19"
       ]
     },
     "chrome-devtools": {
       "command": "npx chrome-devtools-mcp@latest",
       "env": {},
       "args": []
+    },
+    "codex": {
+      "command": "codex",
+      "env": {},
+      "args": [
+        "mcp-server"
+      ]
     }
   }
 }

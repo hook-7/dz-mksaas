@@ -9,6 +9,7 @@ import {
   CoinsIcon,
   CreditCardIcon,
   LayoutDashboardIcon,
+  Link2Icon,
   LockKeyholeIcon,
   Settings2Icon,
   SettingsIcon,
@@ -83,6 +84,12 @@ export function useSidebarLinks(): NestedMenuItem[] {
           title: t('settings.security.title'),
           icon: <LockKeyholeIcon className="size-4 shrink-0" />,
           href: Routes.SettingsSecurity,
+          external: false,
+        },
+        {
+          title: t('settings.connectedAccounts.title'),
+          icon: <Link2Icon className="size-4 shrink-0" />,
+          href: Routes.SettingsConnectedAccounts,
           external: false,
         },
         {
