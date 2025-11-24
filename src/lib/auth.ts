@@ -127,7 +127,45 @@ export const auth = betterAuth({
   plugins: [
     phoneNumber({
       // SMS OTP sender via Chuanglan (253)
-      sendOTP: async ({ phoneNumber, code }) => {
+      sendOTP: async ({ phoneNumber, code }, request) => {
+        // 开发环境：使用固定验证码，不发送短信
+        if (process.env.NODE_ENV === 'development') {
+          const devOtpCode = process.env.DEV_OTP_CODE || '123456';
+          console.log('🔐 [开发环境] 固定验证码:', devOtpCode);
+          console.log('📱 [开发环境] 手机号:', phoneNumber);
+          console.log('💡 [开发环境] 提示: 在登录页面输入上述验证码即可登录');
+
+          // 将固定验证码写入数据库，替换 Better Auth 生成的验证码
+          try {
+            const db = await getDb();
+            const { verification } = await import('@/db/schema');
+            const { eq, desc } = await import('drizzle-orm');
+
+            // 查找该手机号的最新验证记录（按创建时间降序）
+            const verificationRecords = await db
+              .select()
+              .from(verification)
+              .where(eq(verification.identifier, phoneNumber))
+              .orderBy(desc(verification.createdAt))
+              .limit(1);
+
+            if (verificationRecords.length > 0) {
+              // 更新验证码为固定值
+              await db
+                .update(verification)
+                .set({ value: devOtpCode })
+                .where(eq(verification.id, verificationRecords[0].id));
+              console.log('✅ [开发环境] 已更新数据库中的验证码为固定值');
+            }
+          } catch (error) {
+            console.error('开发环境：更新固定验证码失败:', error);
+            // 即使更新失败，也不影响流程，用户仍然可以使用打印的验证码
+          }
+
+          return;
+        }
+
+        // 生产环境：正常发送短信
         const { sendChuanglanOtp } = await import('./sms/chuanglan');
         const result = await sendChuanglanOtp({
           phoneNumber,

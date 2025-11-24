@@ -187,7 +187,7 @@ export interface CreditsConfig {
   registerGiftCredits: {
     enable: boolean;                 // Whether to enable register gift credits
     amount: number;                  // The amount of credits to give to the user
-    expireDays?: number;             // The number of days to expire the credits, undefined means no expire
+    expireDays?: number;             // The number of days to expire the credits, undefined means default 30 days
   };
   packages: Record<string, CreditPackage>;  // Packages indexed by ID
 }

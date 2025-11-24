@@ -52,10 +52,31 @@ export function useNavbarLinks(): NestedMenuItem[] {
 
   return [
     {
+      title: t('home.title'),
+      href: Routes.Root,
+      external: false,
+    },
+    {
+      title: t('productIntro.title'),
+      href: '/#core-features',
+      external: false,
+    },
+    {
+      title: t('productPricing.title'),
+      href: '/#pricing',
+      external: false,
+    },
+    {
+      title: t('faq.title'),
+      href: '/#faq',
+      external: false,
+    },
+    {
       title: t('features.title'),
       href: Routes.Features,
       external: false,
     },
+
     {
       title: t('pricing.title'),
       href: Routes.Pricing,

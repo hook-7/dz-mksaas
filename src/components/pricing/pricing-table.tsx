@@ -1,180 +1,339 @@
 'use client';
 
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { usePricePlans } from '@/config/price-config';
 import { cn } from '@/lib/utils';
-import {
-  PaymentTypes,
-  type PlanInterval,
-  PlanIntervals,
-  type PricePlan,
-} from '@/payment/types';
-import { useTranslations } from 'next-intl';
-import { useState } from 'react';
-import { PricingCard } from './pricing-card';
+import { CheckCircle2 } from 'lucide-react';
+
+type PlanId = 'supreme' | 'trial' | 'personal' | 'business' | 'pro-seller';
+
+type Plan = {
+  id: PlanId;
+  name: string;
+  price: string;
+  originalPrice?: string;
+  daily: string;
+  tag?: string;
+  highlightNote?: string;
+};
+
+type FeatureRow = {
+  label: string;
+  values: string[]; // raw values follow basePlanOrder
+};
+
+// 原始数据按照设计稿（首月免费版、个人版、商家版、大卖版、至尊版）顺序
+const basePlanOrder: PlanId[] = [
+  'trial',
+  'personal',
+  'business',
+  'pro-seller',
+  'supreme',
+];
+
+// 页面展示顺序：至尊版 -> 首月免费版 -> 个人版 -> 商家版(推荐) -> 大卖版
+const displayPlanOrder: PlanId[] = [
+  'supreme',
+  'trial',
+  'personal',
+  'business',
+  'pro-seller',
+];
+
+const plans: Record<PlanId, Plan> = {
+  supreme: {
+    id: 'supreme',
+    name: '至尊版',
+    price: '6980元/年',
+    daily: '19元/天【581/月】',
+    highlightNote: '所有会员剩余时间可折现购买',
+  },
+  trial: {
+    id: 'trial',
+    name: '首月免费版',
+    price: '免费',
+    daily: '0元/天【首月】',
+  },
+  personal: {
+    id: 'personal',
+    name: '个人版',
+    price: '999元/年',
+    originalPrice: '1999元',
+    daily: '2.7元/天【83/月】',
+  },
+  business: {
+    id: 'business',
+    name: '商家版',
+    price: '2999元/年',
+    originalPrice: '3999元',
+    daily: '6.5元/天【199/月】',
+    tag: '推荐',
+    highlightNote: '100个样品/月',
+  },
+  'pro-seller': {
+    id: 'pro-seller',
+    name: '大卖版',
+    price: '5999元/年',
+    originalPrice: '9999元',
+    daily: '16元/天【499/月】',
+  },
+};
+
+const features: FeatureRow[] = [
+  {
+    label: '样品发送数量',
+    values: [
+      '30个样品/月',
+      '30个样品/月',
+      '100个样品/月',
+      '600个样品/月',
+      '不限',
+    ],
+  },
+  { label: '子账号', values: ['4个', '无限制', '无限制', '无限制', '无限制'] },
+  { label: '购买子账号', values: ['1200元/个', '0元', '0元', '0元', '0元'] },
+  {
+    label: '支持店铺数据',
+    values: ['24', '无限制', '无限制', '无限制', '无限制'],
+  },
+  { label: '增加店铺', values: ['1500元/个', '0元', '0元', '0元', '0元'] },
+  {
+    label: '视频脚本生成',
+    values: ['无', '无限制', '无限制', '无限制', '无限制'],
+  },
+  {
+    label: 'AI 创建计划',
+    values: ['无', '无限制', '无限制', '无限制', '无限制'],
+  },
+  {
+    label: 'AI 筛选达人',
+    values: ['无', '无限制', '无限制', '无限制', '无限制'],
+  },
+  {
+    label: 'AI消息回复',
+    values: ['无', '无限制', '无限制', '无限制', '无限制'],
+  },
+  {
+    label: 'AI 独家知识库',
+    values: ['无', '无限制', '无限制', '无限制', '无限制'],
+  },
+  {
+    label: 'AI达人发布视频分析',
+    values: ['无', '无限制', '无限制', '无限制', '无限制'],
+  },
+  {
+    label: 'AI达人合作分析报告生成及发送',
+    values: ['无', '无限制', '无限制', '无限制', '无限制'],
+  },
+  {
+    label: '24小时*7 建计划',
+    values: ['无', '无限制', '无限制', '无限制', '无限制'],
+  },
+  {
+    label: 'Whatsapp消息发送',
+    values: ['无', '无限制', '无限制', '无限制', '无限制'],
+  },
+  {
+    label: '支持店铺数量',
+    values: ['1店铺/帐号', '无限制', '无限制', '无限制', '无限制'],
+  },
+  {
+    label: 'AI生成话术',
+    values: ['100次/天', '无限制', '无限制', '无限制', '无限制'],
+  },
+  {
+    label: 'AI辅助回复',
+    values: ['100次/天', '无限制', '无限制', '无限制', '无限制'],
+  },
+  {
+    label: '站点支持',
+    values: ['全站点', '全站点', '全站点', '全站点', '全站点'],
+  },
+  {
+    label: '邀约达人类',
+    values: ['无限制', '无限制', '无限制', '无限制', '无限制'],
+  },
+  {
+    label: '私信达人数',
+    values: ['无限制', '无限制', '无限制', '无限制', '无限制'],
+  },
+  { label: '清理无效计划', values: ['不支持', '支持', '支持', '支持', '支持'] },
+  {
+    label: '旧计划补充达人',
+    values: ['不支持', '支持', '支持', '支持', '支持'],
+  },
+  { label: '定时执行', values: ['不支持', '支持', '支持', '支持', '支持'] },
+  { label: '极速私信', values: ['不支持', '支持', '支持', '支持', '支持'] },
+  {
+    label: '样品券',
+    values: ['无', '无', '最低1元券', '最低0.7元券', '最低0.3元券'],
+  },
+  {
+    label: '自有邮件发送数',
+    values: ['暂无', '暂无', '暂无', '暂无', '10万/月'],
+  },
+  { label: '邮件代发数', values: ['暂无', '暂无', '暂无', '暂无', '5000封'] },
+  { label: '达人黑名单', values: ['暂无', '暂无', '支持', '支持', '支持'] },
+  { label: '设置达人标签', values: ['暂无', '暂无', '支持', '支持', '支持'] },
+  {
+    label: '样品达人审核&管理',
+    values: ['暂无', '暂无', '支持', '支持', '支持'],
+  },
+  {
+    label: '达人建联记录导出',
+    values: ['暂无', '暂无', '支持', '支持', '支持'],
+  },
+  { label: 'TAP建◆◆模式', values: ['暂无', '暂无', '支持', '支持', '支持'] },
+  { label: '私信订单买家', values: ['暂无', '暂无', '支持', '支持', '支持'] },
+  {
+    label: '新功能优先体验',
+    values: ['不支持', '支持', '支持', '支持', '支持'],
+  },
+];
+
+const highlightedPlanId: PlanId = 'business';
+const positiveTokens = ['支持', '无限制'];
+const negativeTokens = ['不支持', '暂无', '无'];
+
+function mapValueToPlan(feature: FeatureRow, planId: PlanId): string {
+  const index = basePlanOrder.indexOf(planId);
+  return index === -1 ? '—' : (feature.values[index] ?? '—');
+}
+
+function renderCell(value: string, isHighlighted: boolean) {
+  const isPositive = positiveTokens.some((token) => value.includes(token));
+  const isNegative = negativeTokens.some((token) => value === token);
+
+  if (isPositive) {
+    return (
+      <span
+        className={cn(
+          'inline-flex items-center justify-center gap-2 text-sm font-medium text-emerald-700',
+          isHighlighted && 'font-semibold'
+        )}
+      >
+        <CheckCircle2 className="h-5 w-5 text-emerald-500 fill-emerald-500" />
+        {value}
+      </span>
+    );
+  }
+
+  if (isNegative) {
+    return <span className="text-sm text-gray-400">{value}</span>;
+  }
+
+  return <span className="text-sm text-gray-800">{value}</span>;
+}
 
 interface PricingTableProps {
-  metadata?: Record<string, string>;
-  currentPlan?: PricePlan | null;
   className?: string;
 }
 
-/**
- * Pricing Table Component
- *
- * 1. Displays all pricing plans with interval selection tabs for subscription plans,
- * free plans and one-time purchase plans are always displayed
- * 2. If a plan is disabled, it will not be displayed in the pricing table
- * 3. If a price is disabled, it will not be displayed in the pricing table
- */
-export function PricingTable({
-  metadata,
-  currentPlan,
-  className,
-}: PricingTableProps) {
-  const t = useTranslations('PricingPage');
-  const [interval, setInterval] = useState<PlanInterval>(PlanIntervals.MONTH);
-
-  // Get price plans with translations
-  const pricePlans = usePricePlans();
-  const plans = Object.values(pricePlans);
-
-  // Current plan ID for comparison
-  const currentPlanId = currentPlan?.id || null;
-
-  // Filter plans into free, subscription and one-time plans
-  const freePlans = plans.filter((plan) => plan.isFree && !plan.disabled);
-
-  const subscriptionPlans = plans.filter(
-    (plan) =>
-      !plan.isFree &&
-      !plan.disabled &&
-      plan.prices.some(
-        (price) => !price.disabled && price.type === PaymentTypes.SUBSCRIPTION
-      )
-  );
-
-  const oneTimePlans = plans.filter(
-    (plan) =>
-      !plan.isFree &&
-      !plan.disabled &&
-      plan.prices.some(
-        (price) => !price.disabled && price.type === PaymentTypes.ONE_TIME
-      )
-  );
-
-  // Check if any plan has a monthly price option
-  const hasMonthlyOption = subscriptionPlans.some((plan) =>
-    plan.prices.some(
-      (price) =>
-        price.type === PaymentTypes.SUBSCRIPTION &&
-        price.interval === PlanIntervals.MONTH
-    )
-  );
-
-  // Check if any plan has a yearly price option
-  const hasYearlyOption = subscriptionPlans.some((plan) =>
-    plan.prices.some(
-      (price) =>
-        price.type === PaymentTypes.SUBSCRIPTION &&
-        price.interval === PlanIntervals.YEAR
-    )
-  );
-
-  const handleIntervalChange = (value: string) => {
-    setInterval(value as PlanInterval);
-  };
-
+export function PricingTable({ className }: PricingTableProps) {
   return (
-    <div className={cn('flex flex-col gap-12', className)}>
-      {/* Show interval toggle if there are subscription plans */}
-      {(hasMonthlyOption || hasYearlyOption) &&
-        subscriptionPlans.length > 0 && (
-          <div className="flex justify-center">
-            <ToggleGroup
-              size="sm"
-              type="single"
-              value={interval}
-              onValueChange={(value) => value && handleIntervalChange(value)}
-              className="border rounded-lg p-1"
-            >
-              {hasMonthlyOption && (
-                <ToggleGroupItem
-                  value="month"
-                  className={cn(
-                    'px-3 py-0 cursor-pointer text-sm rounded-md',
-                    'data-[state=on]:bg-primary data-[state=on]:text-primary-foreground'
-                  )}
-                >
-                  {t('monthly')}
-                </ToggleGroupItem>
-              )}
-              {hasYearlyOption && (
-                <ToggleGroupItem
-                  value="year"
-                  className={cn(
-                    'px-3 py-0 cursor-pointer text-sm rounded-md',
-                    'data-[state=on]:bg-primary data-[state=on]:text-primary-foreground'
-                  )}
-                >
-                  {t('yearly')}
-                </ToggleGroupItem>
-              )}
-            </ToggleGroup>
-          </div>
-        )}
+    <div
+      className={cn(
+        'overflow-hidden rounded-2xl bg-white shadow-[0_12px_40px_rgba(0,0,0,0.08)] ring-1 ring-black/5',
+        className
+      )}
+    >
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[1100px] border-separate border-spacing-0 text-sm text-foreground">
+          <thead>
+            <tr>
+              <th className="w-44 bg-white px-6 py-5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                方案 / 权益
+              </th>
+              {displayPlanOrder.map((planId) => {
+                const plan = plans[planId];
+                const isHighlighted = planId === highlightedPlanId;
 
-      {/* Calculate total number of visible plans */}
-      {(() => {
-        const totalVisiblePlans =
-          freePlans.length + subscriptionPlans.length + oneTimePlans.length;
-        return (
-          <div
-            className={cn(
-              'grid gap-6',
-              // Universal solution that handles any number of cards
-              totalVisiblePlans === 1 && 'grid-cols-1 max-w-md mx-auto w-full',
-              totalVisiblePlans === 2 &&
-                'grid-cols-1 md:grid-cols-2 max-w-2xl mx-auto w-full',
-              totalVisiblePlans >= 3 &&
-                'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
-            )}
-          >
-            {/* Render free plans (always visible) */}
-            {freePlans.map((plan) => (
-              <PricingCard
-                key={plan.id}
-                plan={plan}
-                metadata={metadata}
-                isCurrentPlan={currentPlanId === plan.id}
-              />
-            ))}
+                return (
+                  <th
+                    key={plan.id}
+                    className={cn(
+                      'relative px-6 py-5 text-center align-top',
+                      isHighlighted
+                        ? 'bg-[#474DFF] text-white border-l-2 border-r-2 border-[#474DFF]'
+                        : 'bg-gray-50 text-gray-900 border border-gray-100'
+                    )}
+                  >
+                    {isHighlighted ? (
+                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#474DFF] shadow-md">
+                        推荐
+                      </span>
+                    ) : null}
 
-            {/* Render subscription plans with the selected interval */}
-            {subscriptionPlans.map((plan) => (
-              <PricingCard
-                key={plan.id}
-                plan={plan}
-                interval={interval}
-                paymentType={PaymentTypes.SUBSCRIPTION}
-                metadata={metadata}
-                isCurrentPlan={currentPlanId === plan.id}
-              />
-            ))}
+                    <div className="space-y-1">
+                      <div className="text-base font-semibold">{plan.name}</div>
+                      <div className="text-2xl font-bold leading-tight">
+                        {plan.price}
+                      </div>
+                      {plan.originalPrice ? (
+                        <div
+                          className={cn(
+                            'text-xs line-through',
+                            isHighlighted ? 'text-white/80' : 'text-gray-400'
+                          )}
+                        >
+                          {plan.originalPrice}
+                        </div>
+                      ) : null}
+                      <div
+                        className={cn(
+                          'text-xs',
+                          isHighlighted ? 'text-white/80' : 'text-gray-500'
+                        )}
+                      >
+                        {plan.daily}
+                      </div>
+                      {plan.highlightNote ? (
+                        <div
+                          className={cn(
+                            'text-[11px]',
+                            isHighlighted ? 'text-amber-200' : 'text-primary'
+                          )}
+                        >
+                          {plan.highlightNote}
+                        </div>
+                      ) : null}
+                    </div>
+                  </th>
+                );
+              })}
+            </tr>
+          </thead>
 
-            {/* Render one-time plans (always visible) */}
-            {oneTimePlans.map((plan) => (
-              <PricingCard
-                key={plan.id}
-                plan={plan}
-                paymentType={PaymentTypes.ONE_TIME}
-                metadata={metadata}
-                isCurrentPlan={currentPlanId === plan.id}
-              />
+          <tbody>
+            {features.map((feature, rowIndex) => (
+              <tr
+                key={feature.label}
+                className={rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'}
+              >
+                <td className="whitespace-nowrap border-b border-gray-100 px-6 py-3 text-left text-sm font-semibold text-gray-800">
+                  {feature.label}
+                </td>
+
+                {displayPlanOrder.map((planId) => {
+                  const value = mapValueToPlan(feature, planId);
+                  const isHighlighted = planId === highlightedPlanId;
+
+                  return (
+                    <td
+                      key={`${feature.label}-${planId}`}
+                      className={cn(
+                        'border-b border-gray-100 px-6 py-3 text-center align-middle',
+                        isHighlighted &&
+                          'bg-[#f7f8ff] border-l-2 border-r-2 border-[#474DFF]'
+                      )}
+                    >
+                      {renderCell(value, isHighlighted)}
+                    </td>
+                  );
+                })}
+              </tr>
             ))}
-          </div>
-        );
-      })()}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

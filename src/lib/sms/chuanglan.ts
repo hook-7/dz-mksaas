@@ -45,10 +45,7 @@ function md5(input: string) {
 function makeSignature(md5Password: string, timestamp: string, nonce: string) {
   const parts = [md5Password, timestamp, nonce].sort();
   const signStr = parts.join('').replace(/\s+/g, '');
-  return crypto
-    .createHmac('sha256', md5Password)
-    .update(signStr)
-    .digest('hex');
+  return crypto.createHmac('sha256', md5Password).update(signStr).digest('hex');
 }
 
 function generateNonce(len = 32) {

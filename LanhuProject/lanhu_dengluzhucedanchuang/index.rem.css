@@ -1,0 +1,78 @@
+html {
+  font-size: 37.5px;
+}
+
+.page {
+  background-color: rgba(0, 0, 0, 0.5);
+  position: relative;
+  width: 38.4rem;
+  height: 27.307rem;
+  overflow: hidden;
+}
+
+.text_1 {
+  width: 2.24rem;
+  height: 0.507rem;
+  overflow-wrap: break-word;
+  color: rgba(255, 255, 255, 1);
+  font-size: 0.373rem;
+  font-family: MicrosoftYaHei;
+  font-weight: NaN;
+  text-align: center;
+  white-space: nowrap;
+  line-height: 0.507rem;
+  margin: 6.987rem 0 0 13.387rem;
+}
+
+.section_1 {
+  box-shadow: 0px 5px 14px 1px rgba(61, 61, 84, 0.07);
+  background-color: rgba(255, 255, 255, 1);
+  border-radius: 10px;
+  width: 11.627rem;
+  height: 10.24rem;
+  border: 1px solid rgba(238, 239, 243, 1);
+  margin: 0.454rem 0 9.12rem 13.387rem;
+}
+
+.text_2 {
+  width: 4.267rem;
+  height: 0.48rem;
+  overflow-wrap: break-word;
+  color: rgba(51, 51, 51, 1);
+  font-size: 0.426rem;
+  font-family: MicrosoftYaHei;
+  font-weight: NaN;
+  text-align: center;
+  white-space: nowrap;
+  line-height: 0.48rem;
+  margin: 0.56rem 0 0 0.534rem;
+}
+
+.image_1 {
+  width: 10.48rem;
+  height: 7.094rem;
+  margin: 0.294rem 0 0 0.587rem;
+}
+
+.image-wrapper_4 {
+  width: 10.294rem;
+  height: 0.534rem;
+  margin: 0.694rem 0 0.587rem 0.587rem;
+}
+
+.thumbnail_1 {
+  width: 0.534rem;
+  height: 0.534rem;
+}
+
+.thumbnail_2 {
+  width: 0.534rem;
+  height: 0.534rem;
+  margin-left: 8.32rem;
+}
+
+.thumbnail_3 {
+  width: 0.534rem;
+  height: 0.534rem;
+  margin-left: 0.374rem;
+}

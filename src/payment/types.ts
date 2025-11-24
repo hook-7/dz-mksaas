@@ -67,7 +67,7 @@ export interface Price {
 export interface Credits {
   enable: boolean;                   // Whether to enable credits for this plan
   amount: number;                    // Number of credits provided per month
-  expireDays?: number;               // Number of days until credits expire, undefined means no expiration
+  expireDays?: number;               // Number of days until credits expire, undefined means default 30 days
 }
 
 /**

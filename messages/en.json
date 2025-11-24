@@ -338,11 +338,23 @@
       "features": {
         "title": "Features"
       },
+      "home": {
+        "title": "Home"
+      },
       "pricing": {
         "title": "Pricing"
       },
+      "productIntro": {
+        "title": "Product Intro"
+      },
+      "productPricing": {
+        "title": "Product Pricing"
+      },
       "blog": {
         "title": "Blog"
+      },
+      "faq": {
+        "title": "FAQ"
       },
       "docs": {
         "title": "Docs"
@@ -710,7 +722,9 @@
             "USAGE": "Consumed Credits",
             "EXPIRE": "Expired Credits",
             "SUBSCRIPTION_RENEWAL": "Subscription Renewal",
-            "LIFETIME_MONTHLY": "Lifetime Monthly"
+            "LIFETIME_MONTHLY": "Lifetime Monthly",
+            "TRANSFER_OUT": "Transferred Out",
+            "TRANSFER_IN": "Transferred In"
           },
           "detailViewer": {
             "title": "Credit Transaction Detail",

@@ -22,7 +22,7 @@ export function AddChildAccountButton() {
   const [open, setOpen] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [inviteLink, setInviteLink] = useState<string | null>(null);
-  const [expiresAt, setExpiresAt] = useState<string | null>(null);
+  const [expiresAt, setExpiresAt] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 

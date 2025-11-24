@@ -8,7 +8,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import type { IconName } from 'lucide-react/dynamic';
-import { useLocale, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
 
 type FAQItem = {
   id: string;
@@ -18,39 +18,36 @@ type FAQItem = {
 };
 
 export default function FaqSection() {
-  const locale = useLocale();
   const t = useTranslations('HomePage.faqs');
 
   const faqItems: FAQItem[] = [
     {
       id: 'item-1',
       icon: 'calendar-clock',
-      question: t('items.item-1.question'),
-      answer: t('items.item-1.answer'),
+      question: '使用达A怎样创建计划？',
+      answer:
+        '1.达人营销全流程自动化；2.找达人、建计划、达人消息回复、催发视频、AD code获取、合作效果监控及反馈…',
     },
     {
       id: 'item-2',
       icon: 'wallet',
-      question: t('items.item-2.question'),
-      answer: t('items.item-2.answer'),
+      question: '怎样才能使用 AI 自动化创建计划？',
+      answer:
+        '1.达人营销全流程自动化；2.找达人、建计划、达人消息回复、催发视频、AD code获取、合作效果监控及反馈…',
     },
     {
       id: 'item-3',
       icon: 'refresh-cw',
-      question: t('items.item-3.question'),
-      answer: t('items.item-3.answer'),
+      question: '怎样才能使用达A的AI回复whatsapp消息？（HOT）',
+      answer:
+        '1.达人营销全流程自动化；2.找达人、建计划、达人消息回复、催发视频、AD code获取、合作效果监控及反馈…',
     },
     {
       id: 'item-4',
       icon: 'hand-coins',
-      question: t('items.item-4.question'),
-      answer: t('items.item-4.answer'),
-    },
-    {
-      id: 'item-5',
-      icon: 'mail',
-      question: t('items.item-5.question'),
-      answer: t('items.item-5.answer'),
+      question: '怎样使用某秘的抵扣现金计划？（HOT）',
+      answer:
+        '1.达人营销全流程自动化；2.找达人、建计划、达人消息回复、催发视频、AD code获取、合作效果监控及反馈…',
     },
   ];
 

@@ -8,6 +8,8 @@ export enum CREDIT_TRANSACTION_TYPE {
   SUBSCRIPTION_RENEWAL = 'SUBSCRIPTION_RENEWAL', // Credits earned by subscription renewal
   LIFETIME_MONTHLY = 'LIFETIME_MONTHLY',      // Credits earned by lifetime plan monthly distribution
   USAGE = 'USAGE',                            // Credits spent by usage
+  TRANSFER_OUT = 'TRANSFER_OUT',              // Credits transferred out
+  TRANSFER_IN = 'TRANSFER_IN',                // Credits transferred in
   EXPIRE = 'EXPIRE',                          // Credits expired
 }
 
@@ -31,7 +33,7 @@ export interface CreditPackage {
   popular: boolean;                    // Whether the package is popular
   name?: string;                       // Display name of the package
   description?: string;                // Description of the package
-  expireDays?: number;                 // Number of days to expire the credits, undefined means no expire
+  expireDays?: number;                 // Number of days to expire the credits, undefined means default 30 days
   disabled?: boolean;                  // Whether the package is disabled in the UI
 }
 

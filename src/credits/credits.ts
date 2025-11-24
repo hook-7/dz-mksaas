@@ -2,10 +2,15 @@ import { randomUUID } from 'crypto';
 import { websiteConfig } from '@/config/website';
 import { getDb } from '@/db';
 import { creditTransaction, userCredit } from '@/db/schema';
+import { CREDITS_EXPIRATION_DAYS } from '@/lib/constants';
 import { findPlanByPlanId, findPlanByPriceId } from '@/lib/price-plan';
 import { addDays, isAfter } from 'date-fns';
 import { and, asc, eq, gt, isNull, not, or, sql } from 'drizzle-orm';
 import { CREDIT_TRANSACTION_TYPE } from './types';
+
+type DbInstance = Awaited<ReturnType<typeof getDb>>;
+type DbTransaction = Parameters<Parameters<DbInstance['transaction']>[0]>[0];
+type DbClient = DbInstance | DbTransaction;
 
 /**
  * Get user's current credit balance
@@ -60,6 +65,7 @@ export async function saveCreditTransaction({
   description,
   paymentId,
   expirationDate,
+  db: dbInstance,
 }: {
   userId: string;
   type: string;
@@ -67,6 +73,7 @@ export async function saveCreditTransaction({
   description: string;
   paymentId?: string;
   expirationDate?: Date;
+  db?: DbClient;
 }) {
   if (!userId || !type || !description) {
     console.error(
@@ -81,7 +88,7 @@ export async function saveCreditTransaction({
     console.error('saveCreditTransaction, invalid amount', userId, amount);
     throw new Error('saveCreditTransaction, invalid amount');
   }
-  const db = await getDb();
+  const db = dbInstance || (await getDb());
   await db.insert(creditTransaction).values({
     id: randomUUID(),
     userId,
@@ -109,6 +116,7 @@ export async function addCredits({
   description,
   paymentId,
   expireDays,
+  db: dbInstance,
 }: {
   userId: string;
   amount: number;
@@ -116,6 +124,7 @@ export async function addCredits({
   description: string;
   paymentId?: string;
   expireDays?: number;
+  db?: DbClient;
 }) {
   if (!userId || !type || !description) {
     console.error('addCredits, invalid params', userId, type, description);
@@ -133,7 +142,7 @@ export async function addCredits({
     throw new Error('Invalid expire days');
   }
   // Update user credit balance
-  const db = await getDb();
+  const db = dbInstance || (await getDb());
   const current = await db
     .select()
     .from(userCredit)
@@ -162,13 +171,16 @@ export async function addCredits({
     });
   }
   // Write credit transaction record
+  // Default to 30 days expiration if expireDays is not specified
+  const finalExpireDays = expireDays ?? CREDITS_EXPIRATION_DAYS;
   await saveCreditTransaction({
     userId,
     type,
     amount,
     description,
     paymentId,
-    expirationDate: expireDays ? addDays(new Date(), expireDays) : undefined,
+    expirationDate: addDays(new Date(), finalExpireDays),
+    db,
   });
 }
 
@@ -275,6 +287,174 @@ export async function consumeCredits({
     type: CREDIT_TRANSACTION_TYPE.USAGE,
     amount: -amount,
     description,
+  });
+}
+
+/**
+ * Transfer credits between two users
+ * @param params - Transfer parameters
+ */
+export async function transferCredits({
+  fromUserId,
+  toUserId,
+  amount,
+  description,
+}: {
+  fromUserId: string;
+  toUserId: string;
+  amount: number;
+  description: string;
+}) {
+  if (!fromUserId || !toUserId || !description) {
+    console.error('transferCredits, invalid params', {
+      fromUserId,
+      toUserId,
+      description,
+    });
+    throw new Error('Invalid params');
+  }
+  if (fromUserId === toUserId) {
+    throw new Error('Cannot transfer credits to the same user');
+  }
+  if (!Number.isFinite(amount) || amount <= 0) {
+    console.error('transferCredits, invalid amount', amount);
+    throw new Error('Invalid amount');
+  }
+
+  const db = await getDb();
+
+  await db.transaction(async (tx) => {
+    const now = new Date();
+
+    // Check sender balance inside transaction to prevent race conditions
+    const senderRecord = await tx
+      .select()
+      .from(userCredit)
+      .where(eq(userCredit.userId, fromUserId))
+      .limit(1);
+
+    const senderBalance = senderRecord[0]?.currentCredits || 0;
+    if (senderBalance < amount) {
+      throw new Error('Insufficient credits');
+    }
+
+    // FIFO deduction from sender
+    const sourceTransactions = await tx
+      .select()
+      .from(creditTransaction)
+      .where(
+        and(
+          eq(creditTransaction.userId, fromUserId),
+          not(eq(creditTransaction.type, CREDIT_TRANSACTION_TYPE.USAGE)),
+          not(eq(creditTransaction.type, CREDIT_TRANSACTION_TYPE.EXPIRE)),
+          gt(creditTransaction.remainingAmount, 0),
+          or(
+            isNull(creditTransaction.expirationDate),
+            gt(creditTransaction.expirationDate, now)
+          )
+        )
+      )
+      .orderBy(
+        asc(creditTransaction.expirationDate),
+        asc(creditTransaction.createdAt)
+      );
+
+    let remainingToDeduct = amount;
+    // Track the earliest expiration date from all transferred credits
+    let earliestExpirationDate: Date | null = null;
+
+    for (const transaction of sourceTransactions) {
+      if (remainingToDeduct <= 0) break;
+      const remainingAmount = transaction.remainingAmount || 0;
+      if (remainingAmount <= 0) continue;
+
+      const deductFromThis = Math.min(remainingAmount, remainingToDeduct);
+
+      // Track the earliest expiration date
+      // If expirationDate is null (should not happen with new logic, but handle legacy data),
+      // use default expiration date
+      if (transaction.expirationDate) {
+        if (
+          !earliestExpirationDate ||
+          transaction.expirationDate < earliestExpirationDate
+        ) {
+          earliestExpirationDate = transaction.expirationDate;
+        }
+      }
+
+      await tx
+        .update(creditTransaction)
+        .set({
+          remainingAmount: remainingAmount - deductFromThis,
+          updatedAt: now,
+        })
+        .where(eq(creditTransaction.id, transaction.id));
+
+      remainingToDeduct -= deductFromThis;
+    }
+
+    if (remainingToDeduct > 0) {
+      // Should not happen when senderBalance check passes, but guard for race conditions
+      throw new Error('Insufficient credits');
+    }
+
+    // Update sender balance
+    await tx
+      .update(userCredit)
+      .set({ currentCredits: senderBalance - amount, updatedAt: now })
+      .where(eq(userCredit.userId, fromUserId));
+
+    // Log sender transaction
+    await saveCreditTransaction({
+      userId: fromUserId,
+      type: CREDIT_TRANSACTION_TYPE.TRANSFER_OUT,
+      amount: -amount,
+      description: `${description} (to ${toUserId})`,
+      db: tx,
+    });
+
+    // Credit recipient: create transaction with preserved expiration date
+    // Update recipient balance
+    const recipientRecord = await tx
+      .select()
+      .from(userCredit)
+      .where(eq(userCredit.userId, toUserId))
+      .limit(1);
+
+    const recipientBalance = recipientRecord[0]?.currentCredits || 0;
+    const newRecipientBalance = recipientBalance + amount;
+
+    if (recipientRecord.length > 0) {
+      await tx
+        .update(userCredit)
+        .set({
+          currentCredits: newRecipientBalance,
+          updatedAt: now,
+        })
+        .where(eq(userCredit.userId, toUserId));
+    } else {
+      await tx.insert(userCredit).values({
+        id: randomUUID(),
+        userId: toUserId,
+        currentCredits: newRecipientBalance,
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
+
+    // Write credit transaction record with preserved expiration date
+    // Use the earliest expiration date from transferred credits, or default to 30 days if not found
+    await saveCreditTransaction({
+      userId: toUserId,
+      type: CREDIT_TRANSACTION_TYPE.TRANSFER_IN,
+      amount,
+      description: `${description} (from ${fromUserId})`,
+      // Use the earliest expiration date, or default to 30 days if not found (for legacy data)
+      expirationDate: earliestExpirationDate
+        ? earliestExpirationDate
+        : addDays(now, CREDITS_EXPIRATION_DAYS),
+      db: tx,
+    });
   });
 }
 

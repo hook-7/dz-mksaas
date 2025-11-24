@@ -338,11 +338,23 @@
       "features": {
         "title": "功能"
       },
+      "home": {
+        "title": "首页"
+      },
       "pricing": {
         "title": "价格"
       },
+      "productIntro": {
+        "title": "产品介绍"
+      },
+      "productPricing": {
+        "title": "产品价格"
+      },
       "blog": {
         "title": "博客"
+      },
+      "faq": {
+        "title": "常见问题"
       },
       "docs": {
         "title": "文档"
@@ -710,7 +722,9 @@
             "USAGE": "使用积分",
             "EXPIRE": "过期积分",
             "SUBSCRIPTION_RENEWAL": "订阅月度积分",
-            "LIFETIME_MONTHLY": "终身月度积分"
+            "LIFETIME_MONTHLY": "终身月度积分",
+            "TRANSFER_OUT": "转出积分",
+            "TRANSFER_IN": "转入积分"
           },
           "detailViewer": {
             "title": "积分交易详情",

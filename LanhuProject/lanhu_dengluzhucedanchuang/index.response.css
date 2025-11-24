@@ -1,0 +1,74 @@
+.page {
+  background-color: rgba(0, 0, 0, 0.5);
+  position: relative;
+  width: 100vw;
+  height: 71.12vw;
+  overflow: hidden;
+}
+
+.text_1 {
+  width: 5.84vw;
+  height: 1.32vw;
+  overflow-wrap: break-word;
+  color: rgba(255, 255, 255, 1);
+  font-size: 0.97vw;
+  font-family: MicrosoftYaHei;
+  font-weight: NaN;
+  text-align: center;
+  white-space: nowrap;
+  line-height: 1.32vw;
+  margin: 18.19vw 0 0 34.86vw;
+}
+
+.section_1 {
+  box-shadow: 0px 5px 14px 1px rgba(61, 61, 84, 0.07);
+  background-color: rgba(255, 255, 255, 1);
+  border-radius: 10px;
+  width: 30.28vw;
+  height: 26.67vw;
+  border: 1px solid rgba(238, 239, 243, 1);
+  margin: 1.18vw 0 23.75vw 34.86vw;
+}
+
+.text_2 {
+  width: 11.12vw;
+  height: 1.25vw;
+  overflow-wrap: break-word;
+  color: rgba(51, 51, 51, 1);
+  font-size: 1.11vw;
+  font-family: MicrosoftYaHei;
+  font-weight: NaN;
+  text-align: center;
+  white-space: nowrap;
+  line-height: 1.25vw;
+  margin: 1.45vw 0 0 1.38vw;
+}
+
+.image_1 {
+  width: 27.3vw;
+  height: 18.48vw;
+  margin: 0.76vw 0 0 1.52vw;
+}
+
+.image-wrapper_4 {
+  width: 26.81vw;
+  height: 1.39vw;
+  margin: 1.8vw 0 1.52vw 1.52vw;
+}
+
+.thumbnail_1 {
+  width: 1.39vw;
+  height: 1.39vw;
+}
+
+.thumbnail_2 {
+  width: 1.39vw;
+  height: 1.39vw;
+  margin-left: 21.67vw;
+}
+
+.thumbnail_3 {
+  width: 1.39vw;
+  height: 1.39vw;
+  margin-left: 0.98vw;
+}
