@@ -250,48 +250,31 @@ export function PricingTable({ className }: PricingTableProps) {
                   <th
                     key={plan.id}
                     className={cn(
-                      'relative px-6 py-5 text-center align-top',
+                      'relative px-6 py-5 text-center align-top border-t border-b',
                       isHighlighted
-                        ? 'bg-[#474DFF] text-white border-l-2 border-r-2 border-[#474DFF]'
-                        : 'bg-gray-50 text-gray-900 border border-gray-100'
+                        ? 'bg-white text-gray-900 border-l-2 border-r-2 border-t-2 border-blue-500 shadow-lg z-10 rounded-t-xl transform -translate-y-1'
+                        : 'bg-white text-gray-900 border-gray-100 border-r'
                     )}
                   >
                     {isHighlighted ? (
-                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#474DFF] shadow-md">
+                      <span className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full bg-blue-500 px-3 py-1 text-xs font-semibold text-white shadow-md">
                         推荐
                       </span>
                     ) : null}
 
                     <div className="space-y-1">
                       <div className="text-base font-semibold">{plan.name}</div>
-                      <div className="text-2xl font-bold leading-tight">
+                      <div className="text-2xl font-bold leading-tight text-blue-600">
                         {plan.price}
                       </div>
                       {plan.originalPrice ? (
-                        <div
-                          className={cn(
-                            'text-xs line-through',
-                            isHighlighted ? 'text-white/80' : 'text-gray-400'
-                          )}
-                        >
+                        <div className="text-xs line-through text-gray-400">
                           {plan.originalPrice}
                         </div>
                       ) : null}
-                      <div
-                        className={cn(
-                          'text-xs',
-                          isHighlighted ? 'text-white/80' : 'text-gray-500'
-                        )}
-                      >
-                        {plan.daily}
-                      </div>
+                      <div className="text-xs text-gray-500">{plan.daily}</div>
                       {plan.highlightNote ? (
-                        <div
-                          className={cn(
-                            'text-[11px]',
-                            isHighlighted ? 'text-amber-200' : 'text-primary'
-                          )}
-                        >
+                        <div className="text-[11px] text-orange-500 font-medium">
                           {plan.highlightNote}
                         </div>
                       ) : null}
@@ -306,9 +289,9 @@ export function PricingTable({ className }: PricingTableProps) {
             {features.map((feature, rowIndex) => (
               <tr
                 key={feature.label}
-                className={rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'}
+                className="bg-white hover:bg-gray-50 transition-colors"
               >
-                <td className="whitespace-nowrap border-b border-gray-100 px-6 py-3 text-left text-sm font-semibold text-gray-800">
+                <td className="whitespace-nowrap border-b border-gray-100 px-6 py-3 text-left text-sm font-semibold text-gray-800 border-l border-gray-100">
                   {feature.label}
                 </td>
 
@@ -321,8 +304,12 @@ export function PricingTable({ className }: PricingTableProps) {
                       key={`${feature.label}-${planId}`}
                       className={cn(
                         'border-b border-gray-100 px-6 py-3 text-center align-middle',
-                        isHighlighted &&
-                          'bg-[#f7f8ff] border-l-2 border-r-2 border-[#474DFF]'
+                        isHighlighted
+                          ? 'bg-white border-l-2 border-r-2 border-blue-500'
+                          : 'border-r border-gray-100',
+                        rowIndex === features.length - 1 &&
+                          isHighlighted &&
+                          'border-b-2 rounded-b-xl'
                       )}
                     >
                       {renderCell(value, isHighlighted)}
