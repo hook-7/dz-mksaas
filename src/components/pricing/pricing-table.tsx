@@ -232,6 +232,7 @@ interface PricingTableProps {
 
 export function PricingTable({ className, onPurchase }: PricingTableProps) {
   const t = useTranslations('Dashboard.mallCenter.coupons'); // Using shared translation or generic
+  const tMall = useTranslations('Dashboard.mallCenter');
 
   return (
     <div
@@ -243,6 +244,17 @@ export function PricingTable({ className, onPurchase }: PricingTableProps) {
       <div className="overflow-x-auto overflow-visible pt-8">
         <table className="w-full min-w-[1100px] border-separate border-spacing-0 text-sm text-foreground">
           <thead>
+            <tr>
+              <th className="w-44 bg-card px-6 py-4 text-center text-lg font-bold text-primary border-b border-r border-border rounded-tl-2xl">
+                {tMall('brandName')}
+              </th>
+              <th
+                colSpan={displayPlanOrder.length}
+                className="bg-card px-6 py-4 text-center text-lg font-bold text-primary border-b border-border rounded-tr-2xl"
+              >
+                {tMall('productName')}
+              </th>
+            </tr>
             <tr>
               <th className="w-44 bg-card px-6 py-5 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 方案 / 权益

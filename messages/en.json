@@ -534,6 +534,8 @@
     "mallCenter": {
       "title": "Mall Center",
       "description": "Purchase memberships and coupons",
+      "brandName": "MouMi",
+      "productName": "DaZhu",
       "tabs": {
         "membership": "Membership",
         "coupons": "Sample Coupons"
