@@ -267,25 +267,39 @@ export function PricingTable({ className, onPurchase }: PricingTableProps) {
                       </span>
                     ) : null}
 
-                    <div className="space-y-1">
+                    <div className="space-y-1 mb-4">
                       <div className="text-base font-semibold">{plan.name}</div>
+
                       <div className="text-2xl font-bold leading-tight text-primary">
                         {plan.price}
                       </div>
+
                       {plan.originalPrice ? (
                         <div className="text-xs line-through text-muted-foreground">
                           {plan.originalPrice}
                         </div>
                       ) : null}
+
                       <div className="text-xs text-muted-foreground">
                         {plan.daily}
                       </div>
+
                       {plan.highlightNote ? (
                         <div className="text-[11px] text-orange-500 font-medium">
                           {plan.highlightNote}
                         </div>
                       ) : null}
                     </div>
+
+                    {onPurchase && (
+                      <Button
+                        className="w-full"
+                        variant={isHighlighted ? 'default' : 'outline'}
+                        onClick={() => onPurchase(plan)}
+                      >
+                        {t('buyNow')}
+                      </Button>
+                    )}
                   </th>
                 );
               })}
@@ -304,6 +318,7 @@ export function PricingTable({ className, onPurchase }: PricingTableProps) {
 
                 {displayPlanOrder.map((planId) => {
                   const value = mapValueToPlan(feature, planId);
+
                   const isHighlighted = planId === highlightedPlanId;
 
                   return (
@@ -311,11 +326,12 @@ export function PricingTable({ className, onPurchase }: PricingTableProps) {
                       key={`${feature.label}-${planId}`}
                       className={cn(
                         'border-b border-border px-6 py-3 text-center align-middle',
+
                         isHighlighted
                           ? 'bg-card border-l-2 border-r-2 border-primary dark:bg-muted/10'
                           : 'border-r border-border',
+
                         rowIndex === features.length - 1 &&
-                          !onPurchase &&
                           isHighlighted &&
                           'border-b-2 rounded-b-xl'
                       )}
@@ -326,34 +342,6 @@ export function PricingTable({ className, onPurchase }: PricingTableProps) {
                 })}
               </tr>
             ))}
-            {onPurchase && (
-              <tr>
-                <td className="whitespace-nowrap border-b border-border px-6 py-5 text-left text-sm font-semibold text-foreground border-l border-border bg-card"></td>
-                {displayPlanOrder.map((planId) => {
-                  const plan = plans[planId];
-                  const isHighlighted = planId === highlightedPlanId;
-                  return (
-                    <td
-                      key={`action-${planId}`}
-                      className={cn(
-                        'border-b border-border px-6 py-5 text-center align-middle',
-                        isHighlighted
-                          ? 'bg-card border-l-2 border-r-2 border-b-2 border-primary dark:bg-muted/10 rounded-b-xl'
-                          : 'border-r border-border bg-card'
-                      )}
-                    >
-                      <Button
-                        className="w-full"
-                        variant={isHighlighted ? 'default' : 'outline'}
-                        onClick={() => onPurchase(plan)}
-                      >
-                        {t('buyNow')}
-                      </Button>
-                    </td>
-                  );
-                })}
-              </tr>
-            )}
           </tbody>
         </table>
       </div>

@@ -1,13 +1,6 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
 
@@ -43,34 +36,49 @@ export function SampleCouponTable() {
   const t = useTranslations('Dashboard.mallCenter.coupons');
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="flex flex-col gap-4">
       {packages.map((pkg) => (
-        <Card
+        <div
           key={pkg.id}
-          className="flex flex-col items-center text-center hover:shadow-lg transition-shadow"
+          className="relative flex w-full overflow-hidden rounded-xl border bg-card shadow-sm transition-all hover:shadow-md"
         >
-          <CardHeader>
-            <CardTitle className="text-2xl">{t(`items.${pkg.id}`)}</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            <div className="flex items-baseline justify-center gap-2">
-              <span className="text-4xl font-bold text-primary">
-                {pkg.price}
-              </span>
-              <span className="text-sm text-muted-foreground line-through">
-                {t('originalPrice', { price: pkg.originalPrice })}
-              </span>
+          {/* Left vertical text section - Coupon stub look */}
+          <div className="flex w-16 flex-col items-center justify-center border-r border-dashed bg-primary/5 p-2 text-primary">
+            <span
+              className="writing-mode-vertical text-lg font-bold tracking-widest"
+              style={{ writingMode: 'vertical-lr' }}
+            >
+              样品券
+            </span>
+          </div>
+
+          {/* Right content section */}
+          <div className="flex flex-1 items-center justify-between p-6">
+            <div className="flex flex-col gap-1">
+              <h3 className="text-xl font-semibold">{t(`items.${pkg.id}`)}</h3>
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-bold text-primary">
+                  {pkg.price}
+                </span>
+                <span className="text-sm text-muted-foreground line-through">
+                  {t('originalPrice', { price: pkg.originalPrice })}
+                </span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {t('lowTo', { price: pkg.unitPrice })}
+              </p>
             </div>
-            <div className="text-sm text-muted-foreground">
-              {t('lowTo', { price: pkg.unitPrice })}
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button className="w-full" size="lg">
+
+            <Button size="lg" className="ml-4">
               {t('buyNow')}
             </Button>
-          </CardFooter>
-        </Card>
+          </div>
+
+          {/* Decorative circles for perforation effect */}
+          <div className="absolute -left-2 top-1/2 h-4 w-4 -translate-y-1/2 rounded-full bg-background" />
+          <div className="absolute left-[3.5rem] top-0 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-background" />
+          <div className="absolute left-[3.5rem] bottom-0 h-3 w-3 -translate-x-1/2 translate-y-1/2 rounded-full bg-background" />
+        </div>
       ))}
     </div>
   );
