@@ -245,12 +245,13 @@ export function PricingTable({ className, onPurchase }: PricingTableProps) {
         <table className="w-full min-w-[1100px] border-separate border-spacing-0 text-sm text-foreground">
           <thead>
             <tr>
-              <th className="w-44 bg-card px-6 py-4 text-center text-lg font-bold text-primary border-b border-r border-border rounded-tl-2xl">
+              <th className="w-44 bg-card border-b border-r border-border rounded-tl-2xl"></th>
+              <th className="bg-orange-50 px-6 py-4 text-center text-lg font-bold text-orange-600 border-b border-r border-border dark:bg-orange-950/30 dark:text-orange-400">
                 {tMall('brandName')}
               </th>
               <th
-                colSpan={displayPlanOrder.length}
-                className="bg-card px-6 py-4 text-center text-lg font-bold text-primary border-b border-border rounded-tr-2xl"
+                colSpan={displayPlanOrder.length - 1}
+                className="bg-blue-50 px-6 py-4 text-center text-lg font-bold text-blue-600 border-b border-border rounded-tr-2xl dark:bg-blue-950/30 dark:text-blue-400"
               >
                 {tMall('productName')}
               </th>
@@ -258,7 +259,7 @@ export function PricingTable({ className, onPurchase }: PricingTableProps) {
             <tr>
               <th className="w-44 bg-card px-6 py-5 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 方案 / 权益
-              </th>
+              </th>{' '}
               {displayPlanOrder.map((planId) => {
                 const plan = plans[planId];
                 const isHighlighted = planId === highlightedPlanId;
