@@ -82,6 +82,11 @@ export function useNavbarLinks(): NestedMenuItem[] {
       href: Routes.Pricing,
       external: false,
     },
+    {
+      title: t('mallCenter.title'),
+      href: Routes.MallCenter,
+      external: false,
+    },
     ...(websiteConfig.blog.enable
       ? [
           {

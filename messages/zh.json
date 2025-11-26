@@ -344,6 +344,9 @@
       "pricing": {
         "title": "价格"
       },
+      "mallCenter": {
+        "title": "商城中心"
+      },
       "productIntro": {
         "title": "产品介绍"
       },

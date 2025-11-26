@@ -13,8 +13,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { useCurrentUser } from '@/hooks/use-current-user';
 import { useCreditBalance } from '@/hooks/use-credits';
+import { useCurrentUser } from '@/hooks/use-current-user';
 import { ArrowRightLeftIcon } from 'lucide-react';
 import { useAction } from 'next-safe-action/hooks';
 import { useEffect, useState } from 'react';
@@ -135,9 +135,7 @@ export function TransferCreditsCard() {
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle>转移积分</DialogTitle>
-              <DialogDescription>
-                将您的积分转移给其他用户
-              </DialogDescription>
+              <DialogDescription>将您的积分转移给其他用户</DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
@@ -202,11 +200,13 @@ export function TransferCreditsCard() {
 
       <div className="space-y-2">
         <p className="text-sm text-muted-foreground">
-          <strong>当前用户余额:</strong> {isLoadingBalance ? '加载中...' : balance}
+          <strong>当前用户余额:</strong>{' '}
+          {isLoadingBalance ? '加载中...' : balance}
         </p>
         {currentUser && (
           <p className="text-xs text-muted-foreground">
-            <strong>当前用户:</strong> {currentUser.name || currentUser.email} ({currentUser.id})
+            <strong>当前用户:</strong> {currentUser.name || currentUser.email} (
+            {currentUser.id})
           </p>
         )}
         <p className="text-xs text-muted-foreground">
