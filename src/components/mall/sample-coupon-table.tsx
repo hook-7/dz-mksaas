@@ -42,13 +42,9 @@ export function SampleCouponTable() {
           key={pkg.id}
           className="relative flex w-full overflow-hidden rounded-xl border bg-card shadow-sm transition-all hover:shadow-md"
         >
-          {/* Left vertical text section - Coupon stub look */}
-          <div className="flex w-16 flex-col items-center justify-center border-r border-dashed bg-primary/5 p-2 text-primary">
-            <div className="flex flex-col items-center gap-1 leading-tight">
-              <span className="text-lg font-bold">样</span>
-              <span className="text-lg font-bold">品</span>
-              <span className="text-lg font-bold">券</span>
-            </div>
+          {/* Left horizontal text section - Coupon stub look */}
+          <div className="flex w-24 flex-row items-center justify-center border-r border-dashed bg-primary/5 p-2 text-primary">
+            <span className="text-lg font-bold text-center">样品券</span>
           </div>
 
           {/* Right content section */}
