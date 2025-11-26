@@ -3,7 +3,7 @@ import type { Locale } from 'next-intl';
 
 const baseUrl =
   process.env.NEXT_PUBLIC_BASE_URL ??
-  `http://localhost:${process.env.PORT ?? 3000}`;
+  `http://127.0.0.1:${process.env.PORT ?? 3000}`;
 
 /**
  * Get the base URL of the application
