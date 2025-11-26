@@ -231,35 +231,46 @@ interface PricingTableProps {
 }
 
 export function PricingTable({ className, onPurchase }: PricingTableProps) {
-  const t = useTranslations('Dashboard.mallCenter.coupons'); // Using shared translation or generic
+  const t = useTranslations('Dashboard.mallCenter.coupons');
   const tMall = useTranslations('Dashboard.mallCenter');
 
   return (
     <div
       className={cn(
-        'rounded-2xl bg-card shadow-sm ring-1 ring-border',
+        'rounded-3xl bg-card shadow-xl ring-1 ring-border/50',
         className
       )}
     >
-      <div className="overflow-x-auto overflow-visible pt-8">
+      <div className="overflow-x-auto overflow-visible pt-10 pb-4">
         <table className="w-full min-w-[1100px] border-separate border-spacing-0 text-sm text-foreground">
           <thead>
+            {/* Super Header */}
             <tr>
-              <th className="w-44 bg-card border-b border-r border-border rounded-tl-2xl"></th>
-              <th className="bg-orange-50 px-6 py-4 text-center text-lg font-bold text-orange-600 border-b border-r border-border dark:bg-orange-950/30 dark:text-orange-400">
-                {tMall('brandName')}
+              <th className="w-44 p-4 text-center bg-card/50 border-b border-border/50 rounded-tl-3xl">
+                {/* Empty corner */}
+              </th>
+              <th className="p-4 text-center bg-card/50 border-b border-r border-border/50 relative">
+                <div className="absolute inset-0 bg-gradient-to-b from-orange-50/50 to-transparent dark:from-orange-950/10 opacity-50" />
+                <span className="relative inline-flex items-center px-3 py-1 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 text-xs font-bold uppercase tracking-wider">
+                  {tMall('brandName')}
+                </span>
               </th>
               <th
                 colSpan={displayPlanOrder.length - 1}
-                className="bg-blue-50 px-6 py-4 text-center text-lg font-bold text-blue-600 border-b border-border rounded-tr-2xl dark:bg-blue-950/30 dark:text-blue-400"
+                className="p-4 text-center bg-card/50 border-b border-border/50 rounded-tr-3xl relative"
               >
-                {tMall('productName')}
+                <div className="absolute inset-0 bg-gradient-to-b from-blue-50/50 to-transparent dark:from-blue-950/10 opacity-50" />
+                <span className="relative inline-flex items-center px-3 py-1 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 text-xs font-bold uppercase tracking-wider">
+                  {tMall('productName')}
+                </span>
               </th>
             </tr>
+
+            {/* Plan Header */}
             <tr>
-              <th className="w-44 bg-card px-6 py-5 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <th className="w-44 px-6 py-6 text-left text-sm font-semibold text-muted-foreground bg-card border-b border-border/50">
                 方案 / 权益
-              </th>{' '}
+              </th>
               {displayPlanOrder.map((planId) => {
                 const plan = plans[planId];
                 const isHighlighted = planId === highlightedPlanId;
@@ -268,51 +279,79 @@ export function PricingTable({ className, onPurchase }: PricingTableProps) {
                   <th
                     key={plan.id}
                     className={cn(
-                      'relative px-6 py-5 text-center align-top border-t border-b border-border h-full',
+                      'relative px-4 py-6 text-center align-top border-b border-border/50 h-full transition-all duration-300',
                       isHighlighted
-                        ? 'bg-card text-foreground border-l-2 border-r-2 border-t-2 border-primary shadow-lg z-10 rounded-t-xl transform -translate-y-1 dark:bg-muted/10'
-                        : 'bg-card text-foreground border-r border-border'
+                        ? 'bg-card shadow-2xl ring-2 ring-primary/20 z-10 rounded-t-2xl scale-[1.02] origin-bottom -translate-y-2'
+                        : 'bg-card/50 text-muted-foreground'
                     )}
                   >
-                    <div className="flex flex-col h-full justify-between gap-4">
+                    <div className="flex flex-col h-full justify-between gap-6">
                       <div>
                         {isHighlighted ? (
-                          <span className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground shadow-md">
+                          <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-primary to-primary/80 px-4 py-1 text-xs font-bold text-primary-foreground shadow-lg ring-2 ring-background">
                             推荐
                           </span>
                         ) : null}
 
-                        <div className="space-y-1">
-                          <div className="text-base font-semibold">
+                        <div className="space-y-2">
+                          <div
+                            className={cn(
+                              'text-lg font-bold',
+                              isHighlighted
+                                ? 'text-foreground'
+                                : 'text-foreground/80'
+                            )}
+                          >
                             {plan.name}
                           </div>
-                          <div className="text-2xl font-bold leading-tight text-primary">
-                            {plan.price}
+
+                          <div className="flex items-baseline justify-center gap-1">
+                            <span
+                              className={cn(
+                                'text-3xl font-extrabold tracking-tight',
+                                isHighlighted
+                                  ? 'text-primary'
+                                  : 'text-foreground'
+                              )}
+                            >
+                              {plan.price.replace(/[^\d.]/g, '')}
+                            </span>
+                            <span className="text-sm font-medium text-muted-foreground">
+                              {plan.price.replace(/[\d.]/g, '')}
+                            </span>
                           </div>
+
                           {plan.originalPrice ? (
-                            <div className="text-xs line-through text-muted-foreground">
+                            <div className="text-xs line-through text-muted-foreground/60 font-medium">
                               {plan.originalPrice}
                             </div>
                           ) : (
                             <div className="h-4"></div>
                           )}
-                          <div className="text-xs text-muted-foreground">
+
+                          <div className="text-xs text-muted-foreground/80 font-medium px-2">
                             {plan.daily}
                           </div>
+
                           {plan.highlightNote ? (
-                            <div className="text-[11px] text-orange-500 font-medium">
+                            <div className="text-[11px] font-bold text-orange-500 bg-orange-50 dark:bg-orange-900/20 px-2 py-1 rounded-md inline-block">
                               {plan.highlightNote}
                             </div>
                           ) : (
-                            <div className="h-4"></div>
+                            <div className="h-6"></div> // Height placeholder for alignment
                           )}
                         </div>
                       </div>
 
                       {onPurchase && (
                         <Button
-                          className="w-full mt-auto"
+                          className={cn(
+                            'w-full font-semibold shadow-sm transition-all',
+                            isHighlighted &&
+                              'shadow-primary/25 hover:shadow-primary/40'
+                          )}
                           variant={isHighlighted ? 'default' : 'outline'}
+                          size={isHighlighted ? 'default' : 'sm'}
                           onClick={() => onPurchase(plan)}
                         >
                           {t('buyNow')}
@@ -325,34 +364,31 @@ export function PricingTable({ className, onPurchase }: PricingTableProps) {
             </tr>
           </thead>
 
-          <tbody>
+          <tbody className="bg-card">
             {features.map((feature, rowIndex) => (
               <tr
                 key={feature.label}
-                className="bg-card hover:bg-muted/50 transition-colors"
+                className="group transition-colors hover:bg-muted/30"
               >
-                <td className="whitespace-nowrap border-b border-border px-6 py-3 text-left text-sm font-semibold text-foreground border-l border-border">
+                <td className="px-6 py-4 text-left text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors border-b border-border/50">
                   {feature.label}
                 </td>
 
                 {displayPlanOrder.map((planId) => {
                   const value = mapValueToPlan(feature, planId);
-
                   const isHighlighted = planId === highlightedPlanId;
 
                   return (
                     <td
                       key={`${feature.label}-${planId}`}
                       className={cn(
-                        'border-b border-border px-6 py-3 text-center align-middle',
-
+                        'px-4 py-4 text-center align-middle border-b border-border/50 transition-all duration-300',
                         isHighlighted
-                          ? 'bg-card border-l-2 border-r-2 border-primary dark:bg-muted/10'
-                          : 'border-r border-border',
-
+                          ? 'bg-card shadow-[inset_1px_0_0_0_rgba(0,0,0,0.05),inset_-1px_0_0_0_rgba(0,0,0,0.05)] dark:shadow-[inset_1px_0_0_0_rgba(255,255,255,0.05),inset_-1px_0_0_0_rgba(255,255,255,0.05)] scale-[1.02] z-10'
+                          : '',
                         rowIndex === features.length - 1 &&
                           isHighlighted &&
-                          'border-b-2 rounded-b-xl'
+                          'rounded-b-2xl shadow-2xl ring-2 ring-primary/20 ring-t-0 pb-6'
                       )}
                     >
                       {renderCell(value, isHighlighted)}
