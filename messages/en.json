@@ -531,6 +531,10 @@
     "dashboard": {
       "title": "Dashboard"
     },
+    "mallCenter": {
+      "title": "Mall Center",
+      "description": "Purchase memberships and coupons"
+    },
     "personalCenter": {
       "title": "Personal Center",
       "account": {
@@ -653,10 +657,6 @@
         "retry": "Retry",
         "errorMessage": "Failed to get data",
         "paymentSuccess": "Payment success"
-      },
-      "mallCenter": {
-        "title": "Mall Center",
-        "description": "Purchase memberships and coupons"
       },
       "payment": {
         "processing": {

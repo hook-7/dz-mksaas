@@ -62,6 +62,12 @@ export function useSidebarLinks(): NestedMenuItem[] {
       ],
     },
     {
+      title: t('mallCenter.title'),
+      icon: <StoreIcon className="size-4 shrink-0" />,
+      href: Routes.MallCenter,
+      external: false,
+    },
+    {
       title: t('admin.title'),
       icon: <SettingsIcon className="size-4 shrink-0" />,
       authorizeOnly: isDemo ? ['admin', 'user'] : ['admin'],
@@ -82,12 +88,6 @@ export function useSidebarLinks(): NestedMenuItem[] {
           title: t('settings.billing.title'),
           icon: <CreditCardIcon className="size-4 shrink-0" />,
           href: Routes.SettingsBilling,
-          external: false,
-        },
-        {
-          title: t('settings.mallCenter.title'),
-          icon: <StoreIcon className="size-4 shrink-0" />,
-          href: Routes.SettingsMallCenter,
           external: false,
         },
         ...(websiteConfig.credits.enableCredits
