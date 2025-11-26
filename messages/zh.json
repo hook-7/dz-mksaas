@@ -528,6 +528,15 @@
     "dashboard": {
       "title": "仪表盘"
     },
+    "personalCenter": {
+      "title": "个人中心",
+      "account": {
+        "title": "账户"
+      },
+      "connectedAccounts": {
+        "title": "账号关联"
+      }
+    },
     "admin": {
       "title": "系统管理",
       "users": {

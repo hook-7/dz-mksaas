@@ -1,0 +1,23 @@
+
+
+services:
+  # PostgreSQL 数据库服务
+
+
+  # Next.js 开发应用服务
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: mksaas-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      # 挂载源代码以便热重载
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+
+
+

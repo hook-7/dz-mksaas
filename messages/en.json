@@ -528,6 +528,15 @@
     "dashboard": {
       "title": "Dashboard"
     },
+    "personalCenter": {
+      "title": "Personal Center",
+      "account": {
+        "title": "Account"
+      },
+      "connectedAccounts": {
+        "title": "Connected Accounts"
+      }
+    },
     "admin": {
       "title": "Admin",
       "users": {

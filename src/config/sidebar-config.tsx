@@ -13,6 +13,7 @@ import {
   LockKeyholeIcon,
   Settings2Icon,
   SettingsIcon,
+  UserIcon,
   UsersRoundIcon,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -42,6 +43,24 @@ export function useSidebarLinks(): NestedMenuItem[] {
       external: false,
     },
     {
+      title: t('personalCenter.title'),
+      icon: <UserIcon className="size-4 shrink-0" />,
+      items: [
+        {
+          title: t('personalCenter.account.title'),
+          icon: <CircleUserRoundIcon className="size-4 shrink-0" />,
+          href: Routes.SettingsProfile,
+          external: false,
+        },
+        {
+          title: t('personalCenter.connectedAccounts.title'),
+          icon: <Link2Icon className="size-4 shrink-0" />,
+          href: Routes.SettingsConnectedAccounts,
+          external: false,
+        },
+      ],
+    },
+    {
       title: t('admin.title'),
       icon: <SettingsIcon className="size-4 shrink-0" />,
       authorizeOnly: isDemo ? ['admin', 'user'] : ['admin'],
@@ -58,12 +77,6 @@ export function useSidebarLinks(): NestedMenuItem[] {
       title: t('settings.title'),
       icon: <Settings2Icon className="size-4 shrink-0" />,
       items: [
-        {
-          title: t('settings.profile.title'),
-          icon: <CircleUserRoundIcon className="size-4 shrink-0" />,
-          href: Routes.SettingsProfile,
-          external: false,
-        },
         {
           title: t('settings.billing.title'),
           icon: <CreditCardIcon className="size-4 shrink-0" />,
@@ -84,12 +97,6 @@ export function useSidebarLinks(): NestedMenuItem[] {
           title: t('settings.security.title'),
           icon: <LockKeyholeIcon className="size-4 shrink-0" />,
           href: Routes.SettingsSecurity,
-          external: false,
-        },
-        {
-          title: t('settings.connectedAccounts.title'),
-          icon: <Link2Icon className="size-4 shrink-0" />,
-          href: Routes.SettingsConnectedAccounts,
           external: false,
         },
         {
