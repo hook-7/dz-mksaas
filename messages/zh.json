@@ -533,7 +533,30 @@
     },
     "mallCenter": {
       "title": "商城中心",
-      "description": "购买会员及优惠券"
+      "description": "购买会员及优惠券",
+      "tabs": {
+        "membership": "会员购买",
+        "coupons": "样品券购买"
+      },
+      "coupons": {
+        "buyNow": "立即抢购",
+        "originalPrice": "原价 {price}",
+        "lowTo": "低至 {price}/券",
+        "items": {
+          "100": "100 样品券",
+          "300": "300 样品券",
+          "500": "500 样品券"
+        }
+      },
+      "purchase": {
+        "title": "确认购买",
+        "description": "您正在购买 {item}",
+        "item": "商品",
+        "price": "价格",
+        "scanToPay": "请扫码支付",
+        "cancel": "取消",
+        "confirm": "我已支付"
+      }
     },
     "personalCenter": {
       "title": "个人中心",

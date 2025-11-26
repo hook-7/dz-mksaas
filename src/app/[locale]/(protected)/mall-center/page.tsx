@@ -1,5 +1,5 @@
 import Container from '@/components/layout/container';
-import { PricingTable } from '@/components/pricing/pricing-table';
+import { MallCenterContent } from '@/components/mall/mall-center-content';
 import { getTranslations } from 'next-intl/server';
 
 export async function generateMetadata({
@@ -33,9 +33,10 @@ export default async function MallCenterPage({
     <Container className="mt-8 max-w-7xl px-4 flex flex-col gap-8">
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
+        <p className="text-muted-foreground">{t('description')}</p>
       </div>
 
-      <PricingTable />
+      <MallCenterContent />
     </Container>
   );
 }

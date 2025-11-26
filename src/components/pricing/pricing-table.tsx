@@ -1,7 +1,9 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { CheckCircle2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 type PlanId = 'supreme' | 'trial' | 'personal' | 'business' | 'pro-seller';
 
@@ -225,14 +227,16 @@ function renderCell(value: string, isHighlighted: boolean) {
 
 interface PricingTableProps {
   className?: string;
+  onPurchase?: (plan: { name: string; price: string }) => void;
 }
 
-export function PricingTable({ className }: PricingTableProps) {
+export function PricingTable({ className, onPurchase }: PricingTableProps) {
+  const t = useTranslations('Dashboard.mallCenter.coupons'); // Using shared translation or generic
+
   return (
     <div
       className={cn(
         'overflow-hidden rounded-2xl bg-card shadow-sm ring-1 ring-border',
-
         className
       )}
     >
@@ -243,10 +247,8 @@ export function PricingTable({ className }: PricingTableProps) {
               <th className="w-44 bg-card px-6 py-5 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 方案 / 权益
               </th>
-
               {displayPlanOrder.map((planId) => {
                 const plan = plans[planId];
-
                 const isHighlighted = planId === highlightedPlanId;
 
                 return (
@@ -254,7 +256,6 @@ export function PricingTable({ className }: PricingTableProps) {
                     key={plan.id}
                     className={cn(
                       'relative px-6 py-5 text-center align-top border-t border-b border-border',
-
                       isHighlighted
                         ? 'bg-card text-foreground border-l-2 border-r-2 border-t-2 border-primary shadow-lg z-10 rounded-t-xl transform -translate-y-1 dark:bg-muted/10'
                         : 'bg-card text-foreground border-r border-border'
@@ -268,21 +269,17 @@ export function PricingTable({ className }: PricingTableProps) {
 
                     <div className="space-y-1">
                       <div className="text-base font-semibold">{plan.name}</div>
-
                       <div className="text-2xl font-bold leading-tight text-primary">
                         {plan.price}
                       </div>
-
                       {plan.originalPrice ? (
                         <div className="text-xs line-through text-muted-foreground">
                           {plan.originalPrice}
                         </div>
                       ) : null}
-
                       <div className="text-xs text-muted-foreground">
                         {plan.daily}
                       </div>
-
                       {plan.highlightNote ? (
                         <div className="text-[11px] text-orange-500 font-medium">
                           {plan.highlightNote}
@@ -307,7 +304,6 @@ export function PricingTable({ className }: PricingTableProps) {
 
                 {displayPlanOrder.map((planId) => {
                   const value = mapValueToPlan(feature, planId);
-
                   const isHighlighted = planId === highlightedPlanId;
 
                   return (
@@ -315,12 +311,11 @@ export function PricingTable({ className }: PricingTableProps) {
                       key={`${feature.label}-${planId}`}
                       className={cn(
                         'border-b border-border px-6 py-3 text-center align-middle',
-
                         isHighlighted
                           ? 'bg-card border-l-2 border-r-2 border-primary dark:bg-muted/10'
                           : 'border-r border-border',
-
                         rowIndex === features.length - 1 &&
+                          !onPurchase &&
                           isHighlighted &&
                           'border-b-2 rounded-b-xl'
                       )}
@@ -331,6 +326,34 @@ export function PricingTable({ className }: PricingTableProps) {
                 })}
               </tr>
             ))}
+            {onPurchase && (
+              <tr>
+                <td className="whitespace-nowrap border-b border-border px-6 py-5 text-left text-sm font-semibold text-foreground border-l border-border bg-card"></td>
+                {displayPlanOrder.map((planId) => {
+                  const plan = plans[planId];
+                  const isHighlighted = planId === highlightedPlanId;
+                  return (
+                    <td
+                      key={`action-${planId}`}
+                      className={cn(
+                        'border-b border-border px-6 py-5 text-center align-middle',
+                        isHighlighted
+                          ? 'bg-card border-l-2 border-r-2 border-b-2 border-primary dark:bg-muted/10 rounded-b-xl'
+                          : 'border-r border-border bg-card'
+                      )}
+                    >
+                      <Button
+                        className="w-full"
+                        variant={isHighlighted ? 'default' : 'outline'}
+                        onClick={() => onPurchase(plan)}
+                      >
+                        {t('buyNow')}
+                      </Button>
+                    </td>
+                  );
+                })}
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

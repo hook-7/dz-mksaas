@@ -533,7 +533,30 @@
     },
     "mallCenter": {
       "title": "Mall Center",
-      "description": "Purchase memberships and coupons"
+      "description": "Purchase memberships and coupons",
+      "tabs": {
+        "membership": "Membership",
+        "coupons": "Sample Coupons"
+      },
+      "coupons": {
+        "buyNow": "Buy Now",
+        "originalPrice": "Original {price}",
+        "lowTo": "Low to {price}/coupon",
+        "items": {
+          "100": "100 Coupons",
+          "300": "300 Coupons",
+          "500": "500 Coupons"
+        }
+      },
+      "purchase": {
+        "title": "Confirm Purchase",
+        "description": "You are about to purchase {item}",
+        "item": "Item",
+        "price": "Price",
+        "scanToPay": "Scan QR Code to Pay",
+        "cancel": "Cancel",
+        "confirm": "I have paid"
+      }
     },
     "personalCenter": {
       "title": "Personal Center",
