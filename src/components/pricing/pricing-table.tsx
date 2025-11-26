@@ -217,10 +217,10 @@ function renderCell(value: string, isHighlighted: boolean) {
   }
 
   if (isNegative) {
-    return <span className="text-sm text-gray-400">{value}</span>;
+    return <span className="text-sm text-muted-foreground">{value}</span>;
   }
 
-  return <span className="text-sm text-gray-800">{value}</span>;
+  return <span className="text-sm text-foreground">{value}</span>;
 }
 
 interface PricingTableProps {
@@ -231,7 +231,8 @@ export function PricingTable({ className }: PricingTableProps) {
   return (
     <div
       className={cn(
-        'overflow-hidden rounded-2xl bg-white shadow-[0_12px_40px_rgba(0,0,0,0.08)] ring-1 ring-black/5',
+        'overflow-hidden rounded-2xl bg-card shadow-sm ring-1 ring-border',
+
         className
       )}
     >
@@ -239,40 +240,49 @@ export function PricingTable({ className }: PricingTableProps) {
         <table className="w-full min-w-[1100px] border-separate border-spacing-0 text-sm text-foreground">
           <thead>
             <tr>
-              <th className="w-44 bg-white px-6 py-5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+              <th className="w-44 bg-card px-6 py-5 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 方案 / 权益
               </th>
+
               {displayPlanOrder.map((planId) => {
                 const plan = plans[planId];
+
                 const isHighlighted = planId === highlightedPlanId;
 
                 return (
                   <th
                     key={plan.id}
                     className={cn(
-                      'relative px-6 py-5 text-center align-top border-t border-b',
+                      'relative px-6 py-5 text-center align-top border-t border-b border-border',
+
                       isHighlighted
-                        ? 'bg-white text-gray-900 border-l-2 border-r-2 border-t-2 border-blue-500 shadow-lg z-10 rounded-t-xl transform -translate-y-1'
-                        : 'bg-white text-gray-900 border-gray-100 border-r'
+                        ? 'bg-card text-foreground border-l-2 border-r-2 border-t-2 border-primary shadow-lg z-10 rounded-t-xl transform -translate-y-1 dark:bg-muted/10'
+                        : 'bg-card text-foreground border-r border-border'
                     )}
                   >
                     {isHighlighted ? (
-                      <span className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full bg-blue-500 px-3 py-1 text-xs font-semibold text-white shadow-md">
+                      <span className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground shadow-md">
                         推荐
                       </span>
                     ) : null}
 
                     <div className="space-y-1">
                       <div className="text-base font-semibold">{plan.name}</div>
-                      <div className="text-2xl font-bold leading-tight text-blue-600">
+
+                      <div className="text-2xl font-bold leading-tight text-primary">
                         {plan.price}
                       </div>
+
                       {plan.originalPrice ? (
-                        <div className="text-xs line-through text-gray-400">
+                        <div className="text-xs line-through text-muted-foreground">
                           {plan.originalPrice}
                         </div>
                       ) : null}
-                      <div className="text-xs text-gray-500">{plan.daily}</div>
+
+                      <div className="text-xs text-muted-foreground">
+                        {plan.daily}
+                      </div>
+
                       {plan.highlightNote ? (
                         <div className="text-[11px] text-orange-500 font-medium">
                           {plan.highlightNote}
@@ -289,24 +299,27 @@ export function PricingTable({ className }: PricingTableProps) {
             {features.map((feature, rowIndex) => (
               <tr
                 key={feature.label}
-                className="bg-white hover:bg-gray-50 transition-colors"
+                className="bg-card hover:bg-muted/50 transition-colors"
               >
-                <td className="whitespace-nowrap border-b border-gray-100 px-6 py-3 text-left text-sm font-semibold text-gray-800 border-l border-gray-100">
+                <td className="whitespace-nowrap border-b border-border px-6 py-3 text-left text-sm font-semibold text-foreground border-l border-border">
                   {feature.label}
                 </td>
 
                 {displayPlanOrder.map((planId) => {
                   const value = mapValueToPlan(feature, planId);
+
                   const isHighlighted = planId === highlightedPlanId;
 
                   return (
                     <td
                       key={`${feature.label}-${planId}`}
                       className={cn(
-                        'border-b border-gray-100 px-6 py-3 text-center align-middle',
+                        'border-b border-border px-6 py-3 text-center align-middle',
+
                         isHighlighted
-                          ? 'bg-white border-l-2 border-r-2 border-blue-500'
-                          : 'border-r border-gray-100',
+                          ? 'bg-card border-l-2 border-r-2 border-primary dark:bg-muted/10'
+                          : 'border-r border-border',
+
                         rowIndex === features.length - 1 &&
                           isHighlighted &&
                           'border-b-2 rounded-b-xl'
