@@ -31,7 +31,7 @@ export function MallCenterContent() {
           <PricingTable onPurchase={handlePurchase} />
         </TabsContent>
         <TabsContent value="coupons">
-          <SampleCouponTable />
+          <SampleCouponTable onPurchase={handlePurchase} />
         </TabsContent>
       </Tabs>
 

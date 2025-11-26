@@ -236,7 +236,7 @@ export function PricingTable({ className, onPurchase }: PricingTableProps) {
   return (
     <div
       className={cn(
-        'overflow-hidden rounded-2xl bg-card shadow-sm ring-1 ring-border',
+        'rounded-2xl bg-card shadow-sm ring-1 ring-border',
         className
       )}
     >
