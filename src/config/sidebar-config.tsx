@@ -36,12 +36,12 @@ export function useSidebarLinks(): NestedMenuItem[] {
   const isDemo = isDemoWebsite();
 
   return [
-    {
-      title: t('dashboard.title'),
-      icon: <LayoutDashboardIcon className="size-4 shrink-0" />,
-      href: Routes.Dashboard,
-      external: false,
-    },
+    // {
+    //   title: t('dashboard.title'),
+    //   icon: <LayoutDashboardIcon className="size-4 shrink-0" />,
+    //   href: Routes.Dashboard,
+    //   external: false,
+    // },
     {
       title: t('personalCenter.title'),
       icon: <UserIcon className="size-4 shrink-0" />,
