@@ -286,19 +286,36 @@ export function PricingTable({ className, onPurchase }: PricingTableProps) {
                     )}
                   >
                     <div className="flex flex-col h-full justify-between gap-6">
+                      <div>
+                        {' '}
+                        {/* Added missing wrapper div */}
                         {isHighlighted ? (
                           <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-primary to-primary/80 px-4 py-1 text-xs font-bold text-primary-foreground shadow-lg ring-2 ring-background">
                             推荐
                           </span>
                         ) : null}
-
                         <div className="space-y-2 min-h-[140px]">
-                          <div className={cn("text-lg font-bold", isHighlighted ? "text-foreground" : "text-foreground/80")}>
+                          <div
+                            className={cn(
+                              'text-lg font-bold',
+                              isHighlighted
+                                ? 'text-foreground'
+                                : 'text-foreground/80'
+                            )}
+                          >
                             {plan.name}
                           </div>
-                          
+
                           <div className="flex items-baseline justify-center gap-1">
-                            <span className={cn("text-3xl font-extrabold tracking-tight", isHighlighted ? "text-primary" : "text-foreground")}>
+                            {' '}
+                            <span
+                              className={cn(
+                                'text-3xl font-extrabold tracking-tight',
+                                isHighlighted
+                                  ? 'text-primary'
+                                  : 'text-foreground'
+                              )}
+                            >
                               {plan.price.replace(/[^\d.]/g, '')}
                             </span>
                             <span className="text-sm font-medium text-muted-foreground">
@@ -313,11 +330,11 @@ export function PricingTable({ className, onPurchase }: PricingTableProps) {
                           ) : (
                             <div className="h-4"></div>
                           )}
-                          
+
                           <div className="text-xs text-muted-foreground/80 font-medium px-2">
                             {plan.daily}
                           </div>
-                          
+
                           {plan.highlightNote ? (
                             <div className="text-[11px] font-bold text-orange-500 bg-orange-50 dark:bg-orange-900/20 px-2 py-1 rounded-md inline-block">
                               {plan.highlightNote}
@@ -326,8 +343,8 @@ export function PricingTable({ className, onPurchase }: PricingTableProps) {
                             <div className="h-6"></div> // Height placeholder for alignment
                           )}
                         </div>
-                      </div>
-
+                      </div>{' '}
+                      {/* Closing div for the missing wrapper */}
                       {onPurchase && (
                         <Button
                           className={cn(
@@ -342,9 +359,9 @@ export function PricingTable({ className, onPurchase }: PricingTableProps) {
                           {t('buyNow')}
                         </Button>
                       )}
-                    </div>
-                </th>
-                )
+                    </div>{' '}
+                  </th>
+                );
               })}
             </tr>
           </thead>
