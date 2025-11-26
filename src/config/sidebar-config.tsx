@@ -44,6 +44,12 @@ export function useSidebarLinks(): NestedMenuItem[] {
     //   external: false,
     // },
     {
+      title: t('mallCenter.title'),
+      icon: <StoreIcon className="size-4 shrink-0" />,
+      href: Routes.MallCenter,
+      external: false,
+    },
+    {
       title: t('personalCenter.title'),
       icon: <UserIcon className="size-4 shrink-0" />,
       items: [
@@ -61,12 +67,7 @@ export function useSidebarLinks(): NestedMenuItem[] {
         },
       ],
     },
-    {
-      title: t('mallCenter.title'),
-      icon: <StoreIcon className="size-4 shrink-0" />,
-      href: Routes.MallCenter,
-      external: false,
-    },
+
     {
       title: t('admin.title'),
       icon: <SettingsIcon className="size-4 shrink-0" />,
