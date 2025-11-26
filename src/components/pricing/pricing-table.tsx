@@ -255,7 +255,7 @@ export function PricingTable({ className, onPurchase }: PricingTableProps) {
                   <th
                     key={plan.id}
                     className={cn(
-                      'relative px-6 py-5 text-center align-top border-t border-b border-border',
+                      'relative flex flex-col px-6 py-5 text-center align-top border-t border-b border-border', // Added flex flex-col
                       isHighlighted
                         ? 'bg-card text-foreground border-l-2 border-r-2 border-t-2 border-primary shadow-lg z-10 rounded-t-xl transform -translate-y-1 dark:bg-muted/10'
                         : 'bg-card text-foreground border-r border-border'
@@ -267,28 +267,32 @@ export function PricingTable({ className, onPurchase }: PricingTableProps) {
                       </span>
                     ) : null}
 
-                    <div className="space-y-1 mb-4">
+                    <div className="flex-grow space-y-1 mb-4 flex flex-col justify-end">
+                      {' '}
+                      {/* Added flex-grow and justify-end */}
                       <div className="text-base font-semibold">{plan.name}</div>
-
                       <div className="text-2xl font-bold leading-tight text-primary">
                         {plan.price}
                       </div>
-
                       {plan.originalPrice ? (
                         <div className="text-xs line-through text-muted-foreground">
                           {plan.originalPrice}
                         </div>
-                      ) : null}
-
+                      ) : (
+                        <div className="h-4"></div>
+                      )}{' '}
+                      {/* Reserved space for originalPrice */}
                       <div className="text-xs text-muted-foreground">
                         {plan.daily}
                       </div>
-
                       {plan.highlightNote ? (
                         <div className="text-[11px] text-orange-500 font-medium">
                           {plan.highlightNote}
                         </div>
-                      ) : null}
+                      ) : (
+                        <div className="h-4"></div>
+                      )}{' '}
+                      {/* Reserved space for highlightNote */}
                     </div>
 
                     {onPurchase && (
