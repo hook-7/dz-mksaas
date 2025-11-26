@@ -240,7 +240,7 @@ export function PricingTable({ className, onPurchase }: PricingTableProps) {
         className
       )}
     >
-      <div className="overflow-x-auto overflow-visible pt-6">
+      <div className="overflow-x-auto overflow-visible pt-8">
         <table className="w-full min-w-[1100px] border-separate border-spacing-0 text-sm text-foreground">
           <thead>
             <tr>
