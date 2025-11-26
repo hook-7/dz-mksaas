@@ -44,12 +44,11 @@ export function SampleCouponTable() {
         >
           {/* Left vertical text section - Coupon stub look */}
           <div className="flex w-16 flex-col items-center justify-center border-r border-dashed bg-primary/5 p-2 text-primary">
-            <span
-              className="writing-mode-vertical text-lg font-bold tracking-widest"
-              style={{ writingMode: 'vertical-lr' }}
-            >
-              样品券
-            </span>
+            <div className="flex flex-col items-center gap-1 leading-tight">
+              <span className="text-lg font-bold">样</span>
+              <span className="text-lg font-bold">品</span>
+              <span className="text-lg font-bold">券</span>
+            </div>
           </div>
 
           {/* Right content section */}

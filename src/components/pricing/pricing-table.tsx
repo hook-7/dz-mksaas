@@ -255,55 +255,57 @@ export function PricingTable({ className, onPurchase }: PricingTableProps) {
                   <th
                     key={plan.id}
                     className={cn(
-                      'relative flex flex-col px-6 py-5 text-center align-top border-t border-b border-border', // Added flex flex-col
+                      'relative px-6 py-5 text-center align-top border-t border-b border-border h-full',
                       isHighlighted
                         ? 'bg-card text-foreground border-l-2 border-r-2 border-t-2 border-primary shadow-lg z-10 rounded-t-xl transform -translate-y-1 dark:bg-muted/10'
                         : 'bg-card text-foreground border-r border-border'
                     )}
                   >
-                    {isHighlighted ? (
-                      <span className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground shadow-md">
-                        推荐
-                      </span>
-                    ) : null}
+                    <div className="flex flex-col h-full justify-between gap-4">
+                      <div>
+                        {isHighlighted ? (
+                          <span className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground shadow-md">
+                            推荐
+                          </span>
+                        ) : null}
 
-                    <div className="flex-grow space-y-1 mb-4 flex flex-col justify-end">
-                      {' '}
-                      {/* Added flex-grow and justify-end */}
-                      <div className="text-base font-semibold">{plan.name}</div>
-                      <div className="text-2xl font-bold leading-tight text-primary">
-                        {plan.price}
-                      </div>
-                      {plan.originalPrice ? (
-                        <div className="text-xs line-through text-muted-foreground">
-                          {plan.originalPrice}
+                        <div className="space-y-1">
+                          <div className="text-base font-semibold">
+                            {plan.name}
+                          </div>
+                          <div className="text-2xl font-bold leading-tight text-primary">
+                            {plan.price}
+                          </div>
+                          {plan.originalPrice ? (
+                            <div className="text-xs line-through text-muted-foreground">
+                              {plan.originalPrice}
+                            </div>
+                          ) : (
+                            <div className="h-4"></div>
+                          )}
+                          <div className="text-xs text-muted-foreground">
+                            {plan.daily}
+                          </div>
+                          {plan.highlightNote ? (
+                            <div className="text-[11px] text-orange-500 font-medium">
+                              {plan.highlightNote}
+                            </div>
+                          ) : (
+                            <div className="h-4"></div>
+                          )}
                         </div>
-                      ) : (
-                        <div className="h-4"></div>
-                      )}{' '}
-                      {/* Reserved space for originalPrice */}
-                      <div className="text-xs text-muted-foreground">
-                        {plan.daily}
                       </div>
-                      {plan.highlightNote ? (
-                        <div className="text-[11px] text-orange-500 font-medium">
-                          {plan.highlightNote}
-                        </div>
-                      ) : (
-                        <div className="h-4"></div>
-                      )}{' '}
-                      {/* Reserved space for highlightNote */}
+
+                      {onPurchase && (
+                        <Button
+                          className="w-full mt-auto"
+                          variant={isHighlighted ? 'default' : 'outline'}
+                          onClick={() => onPurchase(plan)}
+                        >
+                          {t('buyNow')}
+                        </Button>
+                      )}
                     </div>
-
-                    {onPurchase && (
-                      <Button
-                        className="w-full"
-                        variant={isHighlighted ? 'default' : 'outline'}
-                        onClick={() => onPurchase(plan)}
-                      >
-                        {t('buyNow')}
-                      </Button>
-                    )}
                   </th>
                 );
               })}
