@@ -654,6 +654,10 @@
         "errorMessage": "Failed to get data",
         "paymentSuccess": "Payment success"
       },
+      "mallCenter": {
+        "title": "Mall Center",
+        "description": "Purchase memberships and coupons"
+      },
       "payment": {
         "processing": {
           "title": "Processing Payment",

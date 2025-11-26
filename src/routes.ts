@@ -10,7 +10,6 @@ export enum Routes {
   FAQ = '/#faq',
   Features = '/#features',
   Pricing = '/pricing', // change to /#pricing if you want to use the pricing section in homepage
-  MallCenter = '/mall-center',
   Blog = '/blog',
   Docs = '/docs',
   About = '/about',
@@ -38,6 +37,7 @@ export enum Routes {
   SettingsSecurity = '/settings/security',
   SettingsNotifications = '/settings/notifications',
   SettingsConnectedAccounts = '/settings/connected-accounts',
+  SettingsMallCenter = '/settings/mall-center',
 
   // payment processing
   Payment = '/payment',
@@ -87,6 +87,7 @@ export const protectedRoutes = [
   Routes.SettingsSecurity,
   Routes.SettingsNotifications,
   Routes.SettingsConnectedAccounts,
+  Routes.SettingsMallCenter,
   Routes.Payment,
 ];
 

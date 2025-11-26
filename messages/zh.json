@@ -654,6 +654,10 @@
         "errorMessage": "获取数据失败",
         "paymentSuccess": "支付成功"
       },
+      "mallCenter": {
+        "title": "商城中心",
+        "description": "购买会员及优惠券"
+      },
       "payment": {
         "processing": {
           "title": "正在处理支付",

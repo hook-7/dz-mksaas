@@ -10,7 +10,7 @@ export async function generateMetadata({
   const { locale } = await params;
   const t = await getTranslations({
     locale,
-    namespace: 'Marketing.navbar.mallCenter',
+    namespace: 'Dashboard.settings.mallCenter',
   });
 
   return {
@@ -26,7 +26,7 @@ export default async function MallCenterPage({
   const { locale } = await params;
   const t = await getTranslations({
     locale,
-    namespace: 'Marketing.navbar.mallCenter',
+    namespace: 'Dashboard.settings.mallCenter',
   });
 
   return (
