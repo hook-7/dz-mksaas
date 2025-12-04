@@ -328,7 +328,7 @@ export function PricingTable({ className, onPurchase }: PricingTableProps) {
                               {plan.originalPrice}
                             </div>
                           ) : (
-                            <div className="h-4"></div>
+                            <div className="h-4" />
                           )}
 
                           <div className="text-xs text-muted-foreground/80 font-medium px-2">
@@ -340,7 +340,7 @@ export function PricingTable({ className, onPurchase }: PricingTableProps) {
                               {plan.highlightNote}
                             </div>
                           ) : (
-                            <div className="h-6"></div> // Height placeholder for alignment
+                            <div className="h-6" /> 
                           )}
                         </div>
                       </div>{' '}
@@ -348,7 +348,9 @@ export function PricingTable({ className, onPurchase }: PricingTableProps) {
                       {onPurchase &&
                         (plan.id === 'supreme' ? (
                           <div className="flex items-center justify-center h-10">
-                            <span className="text-sm text-muted-foreground">-</span>
+                            <span className="text-sm text-muted-foreground">
+                              -
+                            </span>
                           </div>
                         ) : (
                           <Button

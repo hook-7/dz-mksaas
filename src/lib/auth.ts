@@ -14,6 +14,7 @@ import { admin, phoneNumber } from 'better-auth/plugins';
 import { parse as parseCookies } from 'cookie';
 import type { Locale } from 'next-intl';
 import { getAllPricePlans } from './price-plan';
+import { syncUserToTKSaas } from './tksaas-client';
 import { getBaseUrl, getUrlWithLocaleInCallbackUrl } from './urls/urls';
 
 /**
@@ -273,5 +274,21 @@ async function onCreateUser(user: User) {
         console.error('Free monthly credits error:', error);
       }
     }
+  }
+
+  // Sync user to TKSAAS external service
+  try {
+    // Better Auth's phoneNumber plugin adds phoneNumber to the user object at runtime
+    const userWithPhone = user as User & { phoneNumber?: string };
+
+    await syncUserToTKSaas({
+      bizhub_user_id: user.id,
+      phone: userWithPhone.phoneNumber,
+      email: user.email,
+      username: user.name,
+    });
+  } catch (error) {
+    // Don't throw error to prevent registration failure
+    // Error already logged in syncUserToTKSaas
   }
 }
