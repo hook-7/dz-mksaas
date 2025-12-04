@@ -542,6 +542,7 @@
       },
       "coupons": {
         "buyNow": "立即抢购",
+        "registerNow": "立即注册",
         "originalPrice": "原价 {price}",
         "lowTo": "低至 {price}/券",
         "items": {

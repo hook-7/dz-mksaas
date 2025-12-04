@@ -542,6 +542,7 @@
       },
       "coupons": {
         "buyNow": "Buy Now",
+        "registerNow": "Register Now",
         "originalPrice": "Original {price}",
         "lowTo": "Low to {price}/coupon",
         "items": {

@@ -345,20 +345,29 @@ export function PricingTable({ className, onPurchase }: PricingTableProps) {
                         </div>
                       </div>{' '}
                       {/* Closing div for the missing wrapper */}
-                      {onPurchase && (
-                        <Button
-                          className={cn(
-                            'w-full font-semibold shadow-sm transition-all',
-                            isHighlighted &&
-                              'shadow-primary/25 hover:shadow-primary/40'
-                          )}
-                          variant={isHighlighted ? 'default' : 'outline'}
-                          size={isHighlighted ? 'default' : 'sm'}
-                          onClick={() => onPurchase(plan)}
-                        >
-                          {t('buyNow')}
-                        </Button>
-                      )}
+                      {onPurchase &&
+                        (plan.id === 'supreme' ? (
+                          <div className="flex items-center justify-center h-10">
+                            <span className="text-sm text-muted-foreground">-</span>
+                          </div>
+                        ) : (
+                          <Button
+                            className={cn(
+                              'w-full font-semibold shadow-sm transition-all',
+                              isHighlighted &&
+                                'shadow-primary/25 hover:shadow-primary/40'
+                            )}
+                            variant={
+                              plan.id === 'trial' ? 'outline' : 'default'
+                            }
+                            size="default"
+                            onClick={() => onPurchase(plan)}
+                          >
+                            {plan.id === 'trial'
+                              ? t('registerNow')
+                              : t('buyNow')}
+                          </Button>
+                        ))}
                     </div>{' '}
                   </th>
                 );
