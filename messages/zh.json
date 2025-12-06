@@ -619,6 +619,30 @@
           "error": "解除封禁失败"
         },
         "close": "关闭"
+      },
+      "products": {
+        "title": "产品管理",
+        "description": "管理订阅计划和积分包产品。",
+        "actions": {
+          "create": "新建产品",
+          "edit": "编辑",
+          "delete": "删除",
+          "cancel": "取消",
+          "save": "保存"
+        },
+        "messages": {
+          "loading": "加载中...",
+          "empty": "暂无产品。",
+          "nameRequired": "请输入产品名称",
+          "amountInvalid": "价格金额必须是非负数字",
+          "createSuccess": "产品创建成功",
+          "createFailed": "产品创建失败",
+          "updateSuccess": "产品更新成功",
+          "updateFailed": "产品更新失败",
+          "deleteSuccess": "产品删除成功",
+          "deleteFailed": "产品删除失败",
+          "deleteConfirm": "确定要删除产品「{name}」吗？此操作不可恢复。"
+        }
       }
     },
     "settings": {

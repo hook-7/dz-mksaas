@@ -79,6 +79,12 @@ export function useSidebarLinks(): NestedMenuItem[] {
           href: Routes.AdminUsers,
           external: false,
         },
+        {
+          title: t('admin.products.title'),
+          icon: <StoreIcon className="size-4 shrink-0" />,
+          href: Routes.AdminProducts,
+          external: false,
+        },
       ],
     },
     {

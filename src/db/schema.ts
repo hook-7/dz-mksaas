@@ -214,3 +214,31 @@ export const product = pgTable("product", {
 	productStripePriceIdIdx: index("product_stripe_price_id_idx").on(table.stripePriceId),
 }));
 
+/**
+ * Membership tier table - 会员等级与折扣配置
+ * 用于定义不同会员等级（免费版、个人版、商家版、大卖版）及其对应的全局折扣系数
+ */
+export const membershipTier = pgTable("membership_tier", {
+	id: text("id").primaryKey(), // 可以使用 uuid，在应用层生成
+	// 会员等级代码：对应前端/产品中的 plan 标识
+	// free | personal | business | pro-seller
+	code: text("code").notNull().unique(),
+	// 显示名称（可选），例如：免费版 / 个人版 / 商家版 / 大卖版
+	name: text("name"),
+	// 等级顺序：1 = 免费版，2 = 个人版，3 = 商家版，4 = 大卖版
+	level: integer("level").notNull(),
+	// 会员折扣系数（0-100，例如 90 表示 9 折）
+	discountRate: integer("discount_rate").notNull(),
+	// 是否禁用该等级
+	disabled: boolean("disabled").notNull().default(false),
+	// 排序用，越小越靠前
+	sortOrder: integer("sort_order").notNull().default(0),
+	createdAt: timestamp("created_at").notNull().defaultNow(),
+	updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => ({
+	membershipTierCodeIdx: uniqueIndex("membership_tier_code_idx").on(table.code),
+	membershipTierLevelIdx: index("membership_tier_level_idx").on(table.level),
+	membershipTierDisabledIdx: index("membership_tier_disabled_idx").on(table.disabled),
+	membershipTierSortOrderIdx: index("membership_tier_sort_order_idx").on(table.sortOrder),
+}));
+

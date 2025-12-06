@@ -14,12 +14,18 @@
       "env": {},
       "args": []
     },
-    "codex": {
-      "command": "codex",
-      "env": {},
+    "dbhub": {
+      "command": "npx",
       "args": [
-        "mcp-server"
+        "@bytebase/dbhub",
+        "--transport",
+        "stdio",
+        "--dsn",
+        "postgres://war7ng:yangcha0@10.10.10.8:5333/mksaas2"
       ]
+    },
+    "stripe": {
+      "url": "https://mcp.stripe.com"
     }
   }
 }
