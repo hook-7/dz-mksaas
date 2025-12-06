@@ -1,9 +1,9 @@
 import { createHmac } from 'node:crypto';
 
 /**
- * Bizhub API 签名工具
+ * Signature Utilities
  *
- * 使用 HMAC-SHA256 签名，与 Python/Postman 端兼容
+ * HMAC-SHA256 签名工具
  * 签名格式：{timestamp}\n{nonce}\n{body}
  */
 

@@ -1,9 +1,9 @@
 import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
 
 /**
- * Bizhub API 加密/解密工具
+ * Crypto Utilities
  *
- * 使用 AES-256-GCM 加密，与 Python 端兼容
+ * AES-256-GCM 加密/解密工具
  * 输出格式：base64(nonce + tag + ciphertext)
  *   - nonce: 16 字节
  *   - tag: 16 字节

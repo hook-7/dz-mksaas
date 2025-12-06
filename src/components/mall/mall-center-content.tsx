@@ -39,9 +39,9 @@ export function MallCenterContent() {
         <PurchaseModal
           open={purchaseModalOpen}
           onOpenChange={setPurchaseModalOpen}
-          title={t('tabs.membership')} // Contextual title
+          title={selectedPlan.name}
           price={selectedPlan.price}
-          description={t('description')} // Or specific plan description if available
+          description={t('description')}
         />
       )}
     </div>

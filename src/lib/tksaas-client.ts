@@ -4,7 +4,25 @@
  * 统一管理与 TKSAAS 服务的 API 调用
  */
 
-import { sendEncryptedRequest } from './bizhub-client.example';
+import { getDb } from '@/db/index';
+import { user as userTable } from '@/db/schema';
+import { eq } from 'drizzle-orm';
+import { EncryptedApiClient } from './encrypted-api-client';
+
+// ============== 客户端实例 ==============
+
+/**
+ * 创建 TKSAAS API 客户端实例
+ */
+function createTKSaasClient(): EncryptedApiClient {
+  return new EncryptedApiClient({
+    baseUrl: process.env.TKSAAS_API_URL || 'https://api.example.com',
+    secretKey:
+      process.env.BIZHUB_SECRET_KEY ||
+      'vyQVTdia3SmiT0FfuHMEmds64Q86zW-9M9LGSxgzgS9sYJUQqWac_WHQ8tm42f1I',
+    aesKey: process.env.BIZHUB_AES_KEY || '60de7302c514a30b83d659ea1643e9b5',
+  });
+}
 
 // ============== 类型定义 ==============
 
@@ -54,7 +72,8 @@ export async function syncUserToTKSaas(
       phone: params.phone || '(no phone)',
     });
 
-    const result = await sendEncryptedRequest<TKSaasResponse<SyncUserData>>(
+    const client = createTKSaasClient();
+    const result = await client.post<TKSaasResponse<SyncUserData>>(
       '/api/v1/internal/sync-user',
       params
     );
@@ -68,6 +87,25 @@ export async function syncUserToTKSaas(
         is_new: result.data.is_new,
         message: result.msg,
       });
+
+      // Update user sync status in database
+      try {
+        const db = await getDb();
+        await db
+          .update(userTable)
+          .set({
+            tkSaasUserId: result.data.tk_saas_user_id,
+            synced: result.data.synced,
+            updatedAt: new Date(),
+          })
+          .where(eq(userTable.id, params.bizhub_user_id));
+        console.log(
+          `✅ Updated user sync status in database for ${params.bizhub_user_id}`
+        );
+      } catch (error) {
+        console.error('Failed to update user sync status in database:', error);
+        // Don't throw error, sync was successful
+      }
     } else {
       console.error(
         `❌ Failed to sync user ${params.bizhub_user_id} to TKSAAS`
@@ -99,7 +137,8 @@ export async function updateUserToTKSaas(params: {
   bizhub_user_id: string;
   [key: string]: unknown;
 }): Promise<TKSaasResponse<unknown>> {
-  const result = await sendEncryptedRequest<TKSaasResponse<unknown>>(
+  const client = createTKSaasClient();
+  const result = await client.post<TKSaasResponse<unknown>>(
     '/api/v1/internal/update-user',
     params
   );
@@ -115,7 +154,8 @@ export async function updateUserToTKSaas(params: {
 export async function deleteUserFromTKSaas(
   userId: string
 ): Promise<TKSaasResponse<unknown>> {
-  const result = await sendEncryptedRequest<TKSaasResponse<unknown>>(
+  const client = createTKSaasClient();
+  const result = await client.post<TKSaasResponse<unknown>>(
     '/api/v1/internal/delete-user',
     { bizhub_user_id: userId }
   );
