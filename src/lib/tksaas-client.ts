@@ -5,7 +5,7 @@
  */
 
 import { getDb } from '@/db/index';
-import { user as userTable } from '@/db/schema';
+import { shop as shopTable, user as userTable } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { EncryptedApiClient } from './encrypted-api-client';
 
@@ -52,6 +52,38 @@ export interface SyncUserParams {
   phone?: string;
   email: string;
   username: string;
+}
+
+/**
+ * 店铺列表请求参数
+ */
+export interface ShopListParams {
+  user_id: string;
+  id_type?: 'bizhub' | 'tksaas';
+}
+
+/**
+ * 店铺信息（API 返回格式）
+ */
+export interface ShopInfo {
+  shop_id: string;
+  shop_code: string;
+  shop_name: string;
+  shop_type?: string;
+  region?: string;
+  status?: string;
+  shop_avatar?: string;
+  bound_at?: number; // Unix 时间戳（秒）
+  [key: string]: unknown;
+}
+
+/**
+ * 店铺列表响应数据
+ */
+export interface ShopListData {
+  shops: ShopInfo[];
+  total?: number;
+  [key: string]: unknown;
 }
 
 // ============== API 调用函数 ==============
@@ -160,4 +192,120 @@ export async function deleteUserFromTKSaas(
     { bizhub_user_id: userId }
   );
   return result;
+}
+
+/**
+ * 获取店铺列表
+ *
+ * @param params - 店铺列表查询参数
+ * @returns Promise<TKSaasResponse<ShopListData>>
+ */
+export async function getShopList(
+  params: ShopListParams
+): Promise<TKSaasResponse<ShopListData>> {
+  try {
+    console.log('🔄 Fetching shop list from TKSAAS:', {
+      user_id: params.user_id,
+      id_type: params.id_type || 'bizhub',
+    });
+
+    // 构建查询参数
+    const queryParams = new URLSearchParams({
+      user_id: params.user_id,
+      id_type: params.id_type || 'bizhub',
+    });
+
+    const client = createTKSaasClient();
+    const endpoint = `/api/v1/internal/shop/list?${queryParams.toString()}`;
+    const result = await client.get<TKSaasResponse<ShopListData>>(endpoint);
+
+    if (result.code === 200 && result.data?.shops) {
+      console.log(
+        `✅ Shop list fetched successfully for user ${params.user_id}`
+      );
+      console.log('Shop list result:', {
+        shop_count: result.data.shops.length,
+        total: result.data?.total,
+        message: result.msg,
+      });
+
+      // 保存/更新店铺信息到本地数据库
+      try {
+        const db = await getDb();
+        const shops = result.data.shops;
+
+        for (const shopInfo of shops) {
+          const boundAt = shopInfo.bound_at
+            ? new Date(shopInfo.bound_at * 1000) // 转换为毫秒
+            : null;
+
+          await db
+            .insert(shopTable)
+            .values({
+              id: shopInfo.shop_id,
+              shopCode: shopInfo.shop_code,
+              shopName: shopInfo.shop_name,
+              shopType: shopInfo.shop_type || null,
+              region: shopInfo.region || null,
+              status: shopInfo.status || 'initializing',
+              shopAvatar: shopInfo.shop_avatar || null,
+              boundAt: boundAt,
+              updatedAt: new Date(),
+            })
+            .onConflictDoUpdate({
+              target: shopTable.id,
+              set: {
+                shopCode: shopInfo.shop_code,
+                shopName: shopInfo.shop_name,
+                shopType: shopInfo.shop_type || null,
+                region: shopInfo.region || null,
+                status: shopInfo.status || 'initializing',
+                shopAvatar: shopInfo.shop_avatar || null,
+                boundAt: boundAt,
+                updatedAt: new Date(),
+              },
+            });
+        }
+
+        console.log(`✅ Saved/updated ${shops.length} shops to local database`);
+      } catch (error) {
+        console.error('❌ Failed to save shops to database:', error);
+        // 不抛出错误，继续返回 API 结果
+      }
+    } else {
+      // API 返回了错误状态，记录日志但不抛出异常
+      // 调用方应该检查 result.code 来处理错误
+      console.warn(
+        `⚠️ Shop list API returned error for user ${params.user_id}:`,
+        {
+          code: result.code,
+          msg: result.msg,
+        }
+      );
+    }
+
+    return result;
+  } catch (error) {
+    // 记录详细错误信息用于调试，但不暴露给客户端
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error';
+    console.error('❌ TKSAAS shop list error:', {
+      user_id: params.user_id,
+      id_type: params.id_type,
+      error_message: errorMessage,
+      error_type:
+        error instanceof Error ? error.constructor.name : typeof error,
+    });
+
+    // 对于网络错误等，返回一个错误响应而不是抛出异常
+    // 这样调用方可以检查 result.code 来处理错误
+    return {
+      code: 500,
+      msg: `获取店铺列表失败: ${errorMessage}`,
+      data: {
+        shops: [],
+        total: 0,
+      } as ShopListData,
+    };
+  }
 }

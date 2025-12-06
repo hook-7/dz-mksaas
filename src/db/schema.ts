@@ -159,3 +159,21 @@ export const inviteLink = pgTable("invite_link", {
 	inviteLinkLinkIdx: uniqueIndex("invite_link_link_idx").on(table.link),
 }));
 
+export const shop = pgTable("shop", {
+	id: text("id").primaryKey(),
+	shopCode: text("shop_code").notNull().unique(),
+	shopName: text("shop_name").notNull(),
+	shopType: text("shop_type"),
+	region: text("region"),
+	status: text("status").notNull().default("initializing"),
+	shopAvatar: text("shop_avatar"),
+	boundAt: timestamp("bound_at"),
+	createdAt: timestamp("created_at").notNull().defaultNow(),
+	updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => ({
+	shopCodeIdx: uniqueIndex("shop_code_idx").on(table.shopCode),
+	shopStatusIdx: index("shop_status_idx").on(table.status),
+	shopRegionIdx: index("shop_region_idx").on(table.region),
+	shopTypeIdx: index("shop_type_idx").on(table.shopType),
+}));
+

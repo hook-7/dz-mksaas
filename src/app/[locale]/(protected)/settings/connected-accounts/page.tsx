@@ -1,3 +1,4 @@
+import { getConnectedAccountsAction } from '@/actions/get-connected-accounts';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -11,27 +12,28 @@ import {
 import { RotateCcwIcon, SearchIcon } from 'lucide-react';
 import { AddChildAccountButton } from './add-child-account-dialog';
 
-// Mock data for demonstration
-const connectedAccounts = [
-  {
-    id: '1',
-    nickname: 'wuzexin2000',
-    shops: ['Goodfinds.shop', 'Findexploer'],
-    status: '正常',
-    joinedAt: '2025/01/01',
-    lastLogin: '2025-10-10 10:20:10',
-  },
-  {
-    id: '2',
-    nickname: 'zhangsan2024',
-    shops: ['Myshop.store'],
-    status: '正常',
-    joinedAt: '2025/02/15',
-    lastLogin: '2025-10-11 09:30:00',
-  },
-];
+export default async function ConnectedAccountsPage() {
+  // 获取真实数据
+  const result = await getConnectedAccountsAction();
 
-export default function ConnectedAccountsPage() {
+  // 处理 safe action 返回结果
+  type ConnectedAccount = {
+    id: string;
+    nickname: string;
+    shops: string[];
+    status: string;
+    joinedAt: string;
+    lastLogin: string | null;
+  };
+
+  let connectedAccounts: ConnectedAccount[] = [];
+
+  if (result?.data) {
+    const actionData = result.data;
+    if ('success' in actionData && actionData.success && 'data' in actionData) {
+      connectedAccounts = (actionData.data as ConnectedAccount[]) || [];
+    }
+  }
   return (
     <div className="flex flex-col gap-6 p-6 rounded-lg border shadow-sm">
       {/* Header Section */}
