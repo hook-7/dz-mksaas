@@ -177,3 +177,40 @@ export const shop = pgTable("shop", {
 	shopTypeIdx: index("shop_type_idx").on(table.shopType),
 }));
 
+/**
+ * Product table - 统一管理所有付费产品
+ * 包括：会员订阅计划、积分包等
+ * 每个产品只有一个价格，价格信息直接存储在产品表中
+ */
+export const product = pgTable("product", {
+	id: text("id").primaryKey(),
+	name: text("name").notNull(), // 产品名称
+	description: text("description"), // 产品描述
+	productType: text("product_type").notNull(), // ProductTypes.SUBSCRIPTION_PLAN | ProductTypes.CREDIT_PACKAGE
+	// 产品类型特定配置（JSON）
+	// subscription_plan: { isFree, isLifetime, credits: { enable, amount, expireDays } }
+	// credit_package: { amount, expireDays }
+	config: text("config"), // JSON 格式的配置
+	// 价格信息
+	stripePriceId: text("stripe_price_id"), // Stripe Price ID (可以为空，后续配置)
+	amount: integer("amount").notNull(), // 价格金额（以最小货币单位，如分）
+	currency: text("currency").notNull().default("USD"), // 货币代码
+	paymentType: text("payment_type").notNull(), // 'subscription' | 'one_time'
+	interval: text("interval"), // 'month' | 'year' (仅订阅类型)
+	trialPeriodDays: integer("trial_period_days"), // 试用期天数
+	allowPromotionCode: boolean("allow_promotion_code").notNull().default(false), // 是否允许优惠码
+	originalAmount: integer("original_amount"), // 原价（用于显示折扣）
+	discountRate: integer("discount_rate"), // 折扣系数（0-100，如 80 表示 8 折）
+	// 其他字段
+	popular: boolean("popular").notNull().default(false), // 是否推荐
+	disabled: boolean("disabled").notNull().default(false), // 是否禁用
+	sortOrder: integer("sort_order").notNull().default(0), // 排序顺序
+	createdAt: timestamp("created_at").notNull().defaultNow(),
+	updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => ({
+	productTypeIdx: index("product_type_idx").on(table.productType),
+	productDisabledIdx: index("product_disabled_idx").on(table.disabled),
+	productSortOrderIdx: index("product_sort_order_idx").on(table.sortOrder),
+	productStripePriceIdIdx: index("product_stripe_price_id_idx").on(table.stripePriceId),
+}));
+

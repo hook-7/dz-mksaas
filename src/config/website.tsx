@@ -103,26 +103,39 @@ export const websiteConfig: WebsiteConfig = {
         isFree: true,
         isLifetime: false,
         credits: {
-          enable: true,
-          amount: 50,
+          enable: false,
+          amount: 0,
           expireDays: 30,
         },
       },
-      pro: {
-        id: 'pro',
+      personal: {
+        id: 'personal',
         prices: [
           {
             type: PaymentTypes.SUBSCRIPTION,
-            priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY!,
-            amount: 990,
-            currency: 'USD',
-            interval: PlanIntervals.MONTH,
+            priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_PERSONAL_YEARLY!,
+            amount: 999, // 999元/年
+            currency: 'CNY',
+            interval: PlanIntervals.YEAR,
           },
+        ],
+        isFree: false,
+        isLifetime: false,
+        popular: false,
+        credits: {
+          enable: true,
+          amount: 30,
+          expireDays: 30,
+        },
+      },
+      business: {
+        id: 'business',
+        prices: [
           {
             type: PaymentTypes.SUBSCRIPTION,
-            priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_YEARLY!,
-            amount: 9900,
-            currency: 'USD',
+            priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_BUSINESS_YEARLY!,
+            amount: 2999, // 2999元/年
+            currency: 'CNY',
             interval: PlanIntervals.YEAR,
           },
         ],
@@ -131,26 +144,27 @@ export const websiteConfig: WebsiteConfig = {
         popular: true,
         credits: {
           enable: true,
-          amount: 1000,
+          amount: 100,
           expireDays: 30,
         },
       },
-      lifetime: {
-        id: 'lifetime',
+      'pro-seller': {
+        id: 'pro-seller',
         prices: [
           {
-            type: PaymentTypes.ONE_TIME,
-            priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_LIFETIME!,
-            amount: 19900,
-            currency: 'USD',
-            allowPromotionCode: true,
+            type: PaymentTypes.SUBSCRIPTION,
+            priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_SELLER_YEARLY!,
+            amount: 5999, // 5999元/年
+            currency: 'CNY',
+            interval: PlanIntervals.YEAR,
           },
         ],
         isFree: false,
-        isLifetime: true,
+        isLifetime: false,
+        popular: false,
         credits: {
           enable: true,
-          amount: 1000,
+          amount: 600,
           expireDays: 30,
         },
       },
@@ -161,7 +175,7 @@ export const websiteConfig: WebsiteConfig = {
     enablePackagesForFreePlan: false,
     registerGiftCredits: {
       enable: true,
-      amount: 50,
+      amount: 30,
       expireDays: 30,
     },
     packages: {
