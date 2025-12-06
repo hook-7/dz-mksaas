@@ -48,19 +48,20 @@ export async function checkPremiumAccess(userId: string): Promise<boolean> {
     }
 
     // Get lifetime plan IDs for efficient checking
-    const plans = getAllPricePlans();
+    const plans = await getAllPricePlans();
     const lifetimePlanIds = plans
       .filter((plan) => plan.isLifetime)
       .map((plan) => plan.id);
 
     // Check if any payment grants premium access
-    return result.some((paymentRecord) => {
+    const checks = await Promise.all(
+      result.map(async (paymentRecord) => {
       // For one-time payments, check if it's a lifetime plan
       if (
         paymentRecord.type === PaymentTypes.ONE_TIME &&
         paymentRecord.status === 'completed'
       ) {
-        const plan = findPlanByPriceId(paymentRecord.priceId);
+          const plan = await findPlanByPriceId(paymentRecord.priceId);
         const isLifetimePlan = plan && lifetimePlanIds.includes(plan.id);
         console.log('Check premium access, isLifetimePlan:', isLifetimePlan);
         return isLifetimePlan;
@@ -79,7 +80,10 @@ export async function checkPremiumAccess(userId: string): Promise<boolean> {
       // For other cases, return false (free plan)
       console.log('Check premium access, free plan');
       return false;
-    });
+      })
+    );
+
+    return checks.some((check) => check === true);
   } catch (error) {
     console.error('Check premium access error:', error);
     return false;

@@ -1,5 +1,8 @@
+import type { CreditPackage } from '@/credits/types';
 import { getDb } from '@/db';
 import { product } from '@/db/schema';
+import type { Price, PricePlan } from '@/payment/types';
+import { PaymentTypes, PlanIntervals } from '@/payment/types';
 import { and, asc, eq } from 'drizzle-orm';
 
 /**
@@ -191,4 +194,75 @@ export async function getAllSubscriptionPlans(): Promise<ProductInfo[]> {
  */
 export async function getAllCreditPackages(): Promise<ProductInfo[]> {
   return getAllProducts(ProductTypes.CREDIT_PACKAGE);
+}
+
+/**
+ * 将 ProductInfo 转换为 PricePlan
+ */
+export function productToPricePlan(productInfo: ProductInfo): PricePlan {
+  const config = productInfo.config as SubscriptionPlanConfig | null;
+
+  // 构建价格数组
+  const prices: Price[] = [];
+  if (productInfo.stripePriceId) {
+    const price: Price = {
+      type:
+        productInfo.paymentType === 'subscription'
+          ? PaymentTypes.SUBSCRIPTION
+          : PaymentTypes.ONE_TIME,
+      priceId: productInfo.stripePriceId,
+      amount: productInfo.amount / 100, // 转换为货币单位
+      currency: productInfo.currency,
+      trialPeriodDays: productInfo.trialPeriodDays || undefined,
+      allowPromotionCode: productInfo.allowPromotionCode,
+      disabled: productInfo.disabled,
+    };
+
+    // 如果是订阅类型，添加 interval
+    if (productInfo.paymentType === 'subscription' && productInfo.interval) {
+      price.interval =
+        productInfo.interval === 'month'
+          ? PlanIntervals.MONTH
+          : PlanIntervals.YEAR;
+    }
+
+    prices.push(price);
+  }
+
+  return {
+    id: productInfo.name, // 使用 name 作为 planId（与配置文件保持一致）
+    prices,
+    isFree: config?.isFree || false,
+    isLifetime: config?.isLifetime || false,
+    popular: productInfo.popular,
+    disabled: productInfo.disabled,
+    credits: config?.credits,
+  };
+}
+
+/**
+ * 将 ProductInfo 转换为 CreditPackage
+ */
+export function productToCreditPackage(
+  productInfo: ProductInfo
+): CreditPackage {
+  const config = productInfo.config as CreditPackageConfig | null;
+
+  if (!productInfo.stripePriceId) {
+    throw new Error(`Product ${productInfo.name} has no stripePriceId`);
+  }
+
+  return {
+    id: productInfo.name, // 使用 name 作为 packageId（与配置文件保持一致）
+    amount: config?.amount || 0,
+    price: {
+      priceId: productInfo.stripePriceId,
+      amount: productInfo.amount / 100, // 转换为货币单位
+      currency: productInfo.currency,
+      allowPromotionCode: productInfo.allowPromotionCode,
+    },
+    popular: productInfo.popular,
+    expireDays: config?.expireDays,
+    disabled: productInfo.disabled,
+  };
 }

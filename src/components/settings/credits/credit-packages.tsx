@@ -8,8 +8,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { useCreditPackages } from '@/config/credits-config';
 import { websiteConfig } from '@/config/website';
+import type { CreditPackage } from '@/credits/types';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { useCurrentPlan } from '@/hooks/use-payment';
 import { formatPrice } from '@/lib/formatter';
@@ -21,7 +21,11 @@ import { CreditCheckoutButton } from './credit-checkout-button';
 /**
  * Credit packages component
  */
-export function CreditPackages() {
+interface CreditPackagesProps {
+  creditPackages: CreditPackage[];
+}
+
+export function CreditPackages({ creditPackages }: CreditPackagesProps) {
   // Check if credits are enabled - move this check before any hooks
   if (!websiteConfig.credits.enableCredits) {
     return null;
@@ -36,9 +40,8 @@ export function CreditPackages() {
   );
   const currentPlan = paymentData?.currentPlan;
 
-  // Get credit packages with translations - must be called here to maintain hook order
-  // This function contains useTranslations hook, so it must be called before any conditional returns
-  const creditPackages = Object.values(useCreditPackages()).filter(
+  // 过滤掉已禁用或没有 priceId 的积分包
+  const visiblePackages = creditPackages.filter(
     (pkg) => !pkg.disabled && pkg.price.priceId
   );
 
@@ -70,7 +73,7 @@ export function CreditPackages() {
       </CardHeader>
       <CardContent>
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-          {creditPackages.map((creditPackage) => (
+          {visiblePackages.map((creditPackage) => (
             <Card
               key={creditPackage.id}
               className={cn(

@@ -33,7 +33,7 @@ export const getCurrentPlanAction = userActionClient
       console.log('Check current plan start for userId:', userId);
 
       const db = await getDb();
-      const plans = getAllPricePlans();
+      const plans = await getAllPricePlans();
       const freePlan = plans.find((plan) => plan.isFree && !plan.disabled);
       const lifetimePlanIds = plans
         .filter((plan) => plan.isLifetime)
@@ -94,7 +94,7 @@ export const getCurrentPlanAction = userActionClient
           paymentRecord.status === 'completed' &&
           !userLifetimePlan // Only take the first (most recent) lifetime plan
         ) {
-          const pricePlan = findPlanByPriceId(paymentRecord.priceId);
+          const pricePlan = await findPlanByPriceId(paymentRecord.priceId);
           if (pricePlan && lifetimePlanIds.includes(pricePlan.id)) {
             userLifetimePlan = pricePlan;
             console.log(

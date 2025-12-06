@@ -35,7 +35,7 @@ export const createCreditCheckoutSession = userActionClient
       const locale = await getLocale();
 
       // Find the credit package
-      const creditPackage = getCreditPackageById(packageId);
+      const creditPackage = await getCreditPackageById(packageId);
       if (!creditPackage) {
         return {
           success: false,

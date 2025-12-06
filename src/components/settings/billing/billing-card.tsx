@@ -12,22 +12,26 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { usePricePlans } from '@/config/price-config';
 import { useMounted } from '@/hooks/use-mounted';
 import { useCurrentPlan } from '@/hooks/use-payment';
 import { LocaleLink } from '@/i18n/navigation';
 import { authClient } from '@/lib/auth-client';
 import { formatDate } from '@/lib/formatter';
 import { cn } from '@/lib/utils';
+import type { PricePlan } from '@/payment/types';
 import { Routes } from '@/routes';
 import { CheckCircleIcon, ClockIcon, RefreshCwIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useCallback } from 'react';
 
+interface BillingCardProps {
+  pricePlans: PricePlan[];
+}
+
 /**
  * Billing card, show current plan and subscription status
  */
-export default function BillingCard() {
+export default function BillingCard({ pricePlans }: BillingCardProps) {
   const t = useTranslations('Dashboard.settings.billing');
   const mounted = useMounted();
 
@@ -60,9 +64,8 @@ export default function BillingCard() {
     loadPaymentError: loadPaymentError?.message,
   });
 
-  // Get price plans with translations - must be called here to maintain hook order
-  const pricePlans = usePricePlans();
-  const plans = Object.values(pricePlans);
+  // 所有可选的价格计划（已在服务端查询并做了多语言处理）
+  const plans = pricePlans;
 
   // Convert current plan to a plan with translations
   const currentPlanWithTranslations = currentPlan

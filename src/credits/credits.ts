@@ -612,7 +612,7 @@ export async function addRegisterGiftCredits(userId: string) {
  */
 export async function addMonthlyFreeCredits(userId: string, planId: string) {
   // NOTICE: make sure the free plan is not disabled and has credits enabled
-  const pricePlan = findPlanByPlanId(planId);
+  const pricePlan = await findPlanByPlanId(planId);
   if (
     !pricePlan ||
     pricePlan.disabled ||
@@ -661,7 +661,7 @@ export async function addMonthlyFreeCredits(userId: string, planId: string) {
  */
 export async function addSubscriptionCredits(userId: string, priceId: string) {
   // NOTICE: the price plan maybe disabled, but we still need to add credits for existing users
-  const pricePlan = findPlanByPriceId(priceId);
+  const pricePlan = await findPlanByPriceId(priceId);
   if (
     !pricePlan ||
     // pricePlan.disabled ||
@@ -713,7 +713,7 @@ export async function addLifetimeMonthlyCredits(
   priceId: string
 ) {
   // NOTICE: make sure the lifetime plan is not disabled and has credits enabled
-  const pricePlan = findPlanByPriceId(priceId);
+  const pricePlan = await findPlanByPriceId(priceId);
   if (
     !pricePlan ||
     !pricePlan.isLifetime ||

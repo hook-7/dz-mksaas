@@ -194,13 +194,13 @@ export class StripeProvider implements PaymentProvider {
 
     try {
       // Get plan and price
-      const plan = findPlanByPlanId(planId);
+      const plan = await findPlanByPlanId(planId);
       if (!plan) {
         throw new Error(`Plan with ID ${planId} not found`);
       }
 
       // Find price in plan
-      const price = findPriceInPlan(planId, priceId);
+      const price = await findPriceInPlan(planId, priceId);
       if (!price) {
         throw new Error(`Price ID ${priceId} not found in plan ${planId}`);
       }
@@ -308,7 +308,7 @@ export class StripeProvider implements PaymentProvider {
 
     try {
       // Get credit package
-      const creditPackage = getCreditPackageById(packageId);
+      const creditPackage = await getCreditPackageById(packageId);
       if (!creditPackage) {
         throw new Error(`Credit package with ID ${packageId} not found`);
       }
@@ -816,7 +816,7 @@ export class StripeProvider implements PaymentProvider {
     }
 
     // Get credit package
-    const creditPackage = getCreditPackageById(packageId);
+    const creditPackage = await getCreditPackageById(packageId);
     if (!creditPackage) {
       console.warn('<< Credit package not found:', packageId);
       return;

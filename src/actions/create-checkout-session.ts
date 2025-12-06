@@ -35,7 +35,7 @@ export const createCheckoutAction = userActionClient
       const locale = await getLocale();
 
       // Check if plan exists
-      const plan = findPlanByPlanId(planId);
+      const plan = await findPlanByPlanId(planId);
       if (!plan) {
         return {
           success: false,

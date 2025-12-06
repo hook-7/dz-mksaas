@@ -1,22 +1,31 @@
-import { websiteConfig } from '@/config/website';
+import {
+  getAllSubscriptionPlans,
+  getProductById,
+  getProductByStripePriceId,
+  productToPricePlan,
+} from '@/lib/product';
 import type { Price, PricePlan } from '@/payment/types';
 
 /**
  * Get all price plans (without translations, like name/description/features)
- * NOTICE: This function can be used in server or client components.
+ * NOTICE: This function can be used in server components only (async function).
  * @returns Array of price plans
  */
-export const getAllPricePlans = (): PricePlan[] => {
-  return Object.values(websiteConfig.price.plans);
+export const getAllPricePlans = async (): Promise<PricePlan[]> => {
+  const products = await getAllSubscriptionPlans();
+  return products.map(productToPricePlan);
 };
 
 /**
  * Get plan by plan ID
- * @param planId Plan ID
+ * @param planId Plan ID (product name)
  * @returns Plan or undefined if not found
  */
-export const findPlanByPlanId = (planId: string): PricePlan | undefined => {
-  return getAllPricePlans().find((plan) => plan.id === planId);
+export const findPlanByPlanId = async (
+  planId: string
+): Promise<PricePlan | undefined> => {
+  const plans = await getAllPricePlans();
+  return plans.find((plan) => plan.id === planId);
 };
 
 /**
@@ -24,30 +33,27 @@ export const findPlanByPlanId = (planId: string): PricePlan | undefined => {
  * @param priceId Price ID (Stripe price ID)
  * @returns Plan or undefined if not found
  */
-export const findPlanByPriceId = (priceId: string): PricePlan | undefined => {
-  const plans = getAllPricePlans();
-  for (const plan of plans) {
-    const matchingPrice = plan.prices.find(
-      (price) => price.priceId === priceId
-    );
-    if (matchingPrice) {
-      return plan;
-    }
+export const findPlanByPriceId = async (
+  priceId: string
+): Promise<PricePlan | undefined> => {
+  const product = await getProductByStripePriceId(priceId);
+  if (!product || product.productType !== 'subscription_plan') {
+    return undefined;
   }
-  return undefined;
+  return productToPricePlan(product);
 };
 
 /**
  * Find price in a plan by ID
- * @param planId Plan ID
+ * @param planId Plan ID (product name)
  * @param priceId Price ID (Stripe price ID)
  * @returns Price or undefined if not found
  */
-export const findPriceInPlan = (
+export const findPriceInPlan = async (
   planId: string,
   priceId: string
-): Price | undefined => {
-  const plan = findPlanByPlanId(planId);
+): Promise<Price | undefined> => {
+  const plan = await findPlanByPlanId(planId);
   if (!plan) {
     console.error(`findPriceInPlan, Plan with ID ${planId} not found`);
     return undefined;

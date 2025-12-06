@@ -261,7 +261,7 @@ async function onCreateUser(user: User) {
 
   // Add free monthly credits to the user if enabled in website config
   if (websiteConfig.credits.enableCredits) {
-    const pricePlans = getAllPricePlans();
+    const pricePlans = await getAllPricePlans();
     // NOTICE: make sure the free plan is not disabled and has credits enabled
     const freePlan = pricePlans.find(
       (plan) => plan.isFree && !plan.disabled && plan.credits?.enable

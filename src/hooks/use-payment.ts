@@ -1,5 +1,4 @@
 import { getCurrentPlanAction } from '@/actions/get-current-plan';
-import { getAllPricePlans } from '@/lib/price-plan';
 import type { PricePlan, Subscription } from '@/payment/types';
 import { useQuery } from '@tanstack/react-query';
 
@@ -29,9 +28,10 @@ export function useCurrentPlan(userId: string | undefined) {
       }
 
       console.log('<<< Check current plan success');
+      // getCurrentPlanAction already returns the free plan as fallback
       return (
         result.data.data || {
-          currentPlan: getAllPricePlans().find((plan) => plan.isFree) || null,
+          currentPlan: null,
           subscription: null,
         }
       );

@@ -6,7 +6,7 @@ import { CreditPackages } from '@/components/settings/credits/credit-packages';
 import { CreditTransactionsTable } from '@/components/settings/credits/credit-transactions-table';
 import CreditsCard from '@/components/settings/credits/credits-card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import type { CreditTransaction } from '@/credits/types';
+import type { CreditPackage, CreditTransaction } from '@/credits/types';
 import { useCreditTransactions } from '@/hooks/use-credits';
 import type { ColumnFiltersState, SortingState } from '@tanstack/react-table';
 import { useTranslations } from 'next-intl';
@@ -19,10 +19,16 @@ import {
 } from 'nuqs';
 import { useEffect, useMemo, useRef } from 'react';
 
+interface CreditsPageClientProps {
+  creditPackages: CreditPackage[];
+}
+
 /**
  * Credits page client, show credit balance and transactions
  */
-export default function CreditsPageClient() {
+export default function CreditsPageClient({
+  creditPackages,
+}: CreditsPageClientProps) {
   const t = useTranslations('Dashboard.settings.credits');
 
   const sortableColumnIds = useMemo<
@@ -164,7 +170,7 @@ export default function CreditsPageClient() {
 
           {/* Credit Packages */}
           <div className="w-full">
-            <CreditPackages />
+            <CreditPackages creditPackages={creditPackages} />
           </div>
         </TabsContent>
 

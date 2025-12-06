@@ -80,7 +80,7 @@ export async function distributeCreditsToAllUsers() {
   const lifetimeUsers: Array<{ userId: string; priceId: string }> = [];
   const yearlyUsers: Array<{ userId: string; priceId: string }> = [];
 
-  usersWithPayments.forEach((userRecord) => {
+  for (const userRecord of usersWithPayments) {
     // Check if user has valid payment (active subscription or completed lifetime payment)
     if (
       userRecord.priceId &&
@@ -91,7 +91,7 @@ export async function distributeCreditsToAllUsers() {
         userRecord.paymentStatus === 'completed')
     ) {
       // User has valid payment - check what type
-      const pricePlan = findPlanByPriceId(userRecord.priceId);
+      const pricePlan = await findPlanByPriceId(userRecord.priceId);
       if (pricePlan?.isLifetime && pricePlan?.credits?.enable) {
         lifetimeUsers.push({
           userId: userRecord.userId,
@@ -116,7 +116,7 @@ export async function distributeCreditsToAllUsers() {
       // User has no valid payment - add free monthly credits if enabled
       freeUserIds.push(userRecord.userId);
     }
-  });
+  }
 
   console.log(
     `distribute credits, lifetime users: ${lifetimeUsers.length}, free users: ${freeUserIds.length}, yearly users: ${yearlyUsers.length}`
@@ -207,7 +207,7 @@ export async function batchAddMonthlyFreeCredits(userIds: string[]) {
   }
 
   // NOTICE: make sure the free plan is not disabled and has credits enabled
-  const pricePlans = getAllPricePlans();
+  const pricePlans = await getAllPricePlans();
   const freePlan = pricePlans.find(
     (plan) =>
       plan.isFree &&
@@ -347,7 +347,7 @@ export async function batchAddLifetimeMonthlyCredits(
 
   // Process each priceId group separately
   for (const [priceId, userIdsForPrice] of usersByPriceId) {
-    const pricePlan = findPlanByPriceId(priceId);
+    const pricePlan = await findPlanByPriceId(priceId);
     if (
       !pricePlan ||
       !pricePlan.isLifetime ||
@@ -494,7 +494,7 @@ export async function batchAddYearlyUsersMonthlyCredits(
 
   // Process each price group
   for (const [priceId, userIds] of usersByPriceId) {
-    const pricePlan = findPlanByPriceId(priceId);
+    const pricePlan = await findPlanByPriceId(priceId);
     if (!pricePlan || !pricePlan.credits || !pricePlan.credits.enable) {
       console.log(
         `batchAddYearlyUsersMonthlyCredits, plan disabled or credits disabled for priceId: ${priceId}`
