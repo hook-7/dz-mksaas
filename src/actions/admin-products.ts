@@ -1,12 +1,14 @@
 'use server';
 
+import { randomUUID } from 'crypto';
+
 import { getDb } from '@/db';
 import { product } from '@/db/schema';
-import { adminActionClient } from '@/lib/safe-action';
 import type { ProductInfo } from '@/lib/product';
 import { getAllProducts } from '@/lib/product';
-import { randomUUID } from 'crypto';
+import { adminActionClient } from '@/lib/safe-action';
 import { eq } from 'drizzle-orm';
+import { Stripe } from 'stripe';
 import { z } from 'zod';
 
 // 公共的产品输入 schema（用于创建和更新）
@@ -34,6 +36,57 @@ const productInputSchema = z.object({
   packageExpireDays: z.number().optional(),
 });
 
+type ProductInput = z.infer<typeof productInputSchema>;
+
+/**
+ * 如果没有提供 stripePriceId，则在 Stripe 中创建对应的 Price 并返回其 ID
+ * - 金额为 0（免费产品）时，不创建 Stripe Price，返回 null
+ * - 已经填写了 stripePriceId 时，直接返回该值，不再创建
+ */
+async function createStripePriceIfNeeded(
+  input: ProductInput
+): Promise<string | null> {
+  const existingId = input.stripePriceId?.trim();
+  if (existingId) {
+    return existingId;
+  }
+
+  // 免费产品不需要 Stripe Price
+  if (!input.amount || input.amount <= 0) {
+    return null;
+  }
+
+  const apiKey = process.env.STRIPE_SECRET_KEY;
+  if (!apiKey) {
+    throw new Error('STRIPE_SECRET_KEY is not set, cannot create Stripe price');
+  }
+
+  const stripe = new Stripe(apiKey);
+  const amountInCents = Math.round(input.amount * 100);
+
+  const params: Stripe.PriceCreateParams = {
+    unit_amount: amountInCents,
+    currency: input.currency.toLowerCase(),
+    product_data: {
+      name: input.name,
+      metadata: {
+        productType: input.productType,
+      },
+    },
+    nickname: input.name,
+  };
+
+  if (input.paymentType === 'subscription') {
+    params.recurring = {
+      interval: (input.interval ??
+        'month') as Stripe.PriceCreateParams.Recurring.Interval,
+    };
+  }
+
+  const price = await stripe.prices.create(params);
+  return price.id;
+}
+
 function buildConfig(input: z.infer<typeof productInputSchema>): string | null {
   if (input.productType === 'subscription_plan') {
     const config = {
@@ -41,8 +94,8 @@ function buildConfig(input: z.infer<typeof productInputSchema>): string | null {
       isLifetime: !!input.isLifetime,
       credits: {
         enable: !!input.creditsEnabled,
-        amount: input.creditsEnabled ? input.creditsAmount ?? 0 : 0,
-        expireDays: input.creditsEnabled ? input.creditsExpireDays ?? 30 : 30,
+        amount: input.creditsEnabled ? (input.creditsAmount ?? 0) : 0,
+        expireDays: input.creditsEnabled ? (input.creditsExpireDays ?? 30) : 30,
       },
     };
     return JSON.stringify(config);
@@ -94,18 +147,23 @@ export const createProductAction = adminActionClient
       const amountInCents = Math.round(parsedInput.amount * 100);
       const interval =
         parsedInput.paymentType === 'subscription'
-          ? parsedInput.interval ?? 'month'
+          ? (parsedInput.interval ?? 'month')
           : null;
 
       const config = buildConfig(parsedInput);
 
+      // 如果没有填写 stripePriceId，则自动在 Stripe 中创建 Price 并同步 ID
+      const stripePriceId = await createStripePriceIfNeeded(parsedInput);
+
+      const id = randomUUID();
+
       await db.insert(product).values({
-        id: randomUUID(),
+        id,
         name: parsedInput.name,
         description: parsedInput.description ?? null,
         productType: parsedInput.productType,
         config,
-        stripePriceId: parsedInput.stripePriceId?.trim() || null,
+        stripePriceId,
         amount: amountInCents,
         currency: parsedInput.currency,
         paymentType: parsedInput.paymentType,
@@ -144,10 +202,13 @@ export const updateProductAction = adminActionClient
       const amountInCents = Math.round(parsedInput.amount * 100);
       const interval =
         parsedInput.paymentType === 'subscription'
-          ? parsedInput.interval ?? 'month'
+          ? (parsedInput.interval ?? 'month')
           : null;
 
       const config = buildConfig(parsedInput);
+
+      // 如果没有填写 stripePriceId，则自动在 Stripe 中创建 Price 并同步 ID
+      const stripePriceId = await createStripePriceIfNeeded(parsedInput);
 
       await db
         .update(product)
@@ -156,7 +217,7 @@ export const updateProductAction = adminActionClient
           description: parsedInput.description ?? null,
           productType: parsedInput.productType,
           config,
-          stripePriceId: parsedInput.stripePriceId?.trim() || null,
+          stripePriceId,
           amount: amountInCents,
           currency: parsedInput.currency,
           paymentType: parsedInput.paymentType,
@@ -207,5 +268,3 @@ export const deleteProductAction = adminActionClient
       };
     }
   });
-
-
