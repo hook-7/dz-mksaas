@@ -108,7 +108,7 @@ export function CreditPackages({ creditPackages }: CreditPackagesProps) {
                   <div className="text-right">
                     <div className="text-3xl font-bold text-primary">
                       {formatPrice(
-                        creditPackage.price.amount,
+                        creditPackage.price.amount * 100,
                         creditPackage.price.currency
                       )}
                     </div>

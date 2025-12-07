@@ -619,6 +619,64 @@
           "error": "Failed to unban user"
         },
         "close": "Close"
+      },
+      "products": {
+        "title": "Products",
+        "description": "Manage subscription plans and credit package products.",
+        "actions": {
+          "create": "Create Product",
+          "edit": "Edit",
+          "delete": "Delete",
+          "cancel": "Cancel",
+          "save": "Save"
+        },
+        "messages": {
+          "loading": "Loading...",
+          "empty": "No products yet.",
+          "nameRequired": "Please enter product name",
+          "amountInvalid": "Price amount must be a non-negative number",
+          "createSuccess": "Product created successfully",
+          "createFailed": "Failed to create product",
+          "updateSuccess": "Product updated successfully",
+          "updateFailed": "Failed to update product",
+          "deleteSuccess": "Product deleted successfully",
+          "deleteFailed": "Failed to delete product",
+          "deleteConfirm": "Are you sure you want to delete product \"{name}\"? This action cannot be undone."
+        }
+      },
+      "orders": {
+        "title": "Orders",
+        "description": "View and manage all orders in the system.",
+        "filters": {
+          "status": "Order Status",
+          "dateRange": "Date Range",
+          "search": "Search order number / user ID / product name...",
+          "clear": "Clear filters"
+        },
+        "status": {
+          "all": "All",
+          "pending": "Pending",
+          "paid": "Paid",
+          "failed": "Failed",
+          "refunded": "Refunded"
+        },
+        "columns": {
+          "orderNo": "Order No.",
+          "userId": "User ID",
+          "productName": "Product Name",
+          "productType": "Product Type",
+          "quantity": "Quantity",
+          "originalAmount": "Original Amount",
+          "discountAmount": "Discount",
+          "otherDiscountAmount": "Other Discount",
+          "finalAmount": "Final Amount",
+          "paidAmount": "Paid Amount",
+          "currency": "Currency",
+          "paymentMethod": "Payment Method",
+          "paymentStatus": "Status",
+          "createdAt": "Created At",
+          "paidAt": "Paid At"
+        }
       }
     },
     "settings": {

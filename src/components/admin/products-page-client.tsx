@@ -262,9 +262,7 @@ export function ProductsPageClient() {
       packageAmount: normalizeNumber(form.packageAmount, 0),
       packageExpireDays: normalizeNumber(form.packageExpireDays, 30),
       stock:
-        form.stock.trim() === ''
-          ? undefined
-          : normalizeNumber(form.stock, 0),
+        form.stock.trim() === '' ? undefined : normalizeNumber(form.stock, 0),
     };
 
     if (!payload.name) {
@@ -380,19 +378,19 @@ export function ProductsPageClient() {
                 </tr>
               ) : (
                 sortedProducts.map((p, index) => (
-                    <tr
+                  <tr
                     key={p.id}
                     className={cn('border-t', index % 2 === 1 && 'bg-muted/20')}
                   >
                     <td className="px-4 py-3 align-top max-w-[160px] truncate">
-                        <div className="flex flex-col gap-1">
-                          <span className="text-xs font-medium">
-                            {p.sku || '-'}
-                          </span>
-                          <span className="text-[11px] text-muted-foreground break-all">
-                            {p.id}
-                          </span>
-                        </div>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-xs font-medium">
+                          {p.sku || '-'}
+                        </span>
+                        <span className="text-[11px] text-muted-foreground break-all">
+                          {p.id}
+                        </span>
+                      </div>
                     </td>
                     <td className="px-4 py-3 align-top">
                       <div className="flex flex-col gap-1">
@@ -444,7 +442,7 @@ export function ProductsPageClient() {
                     <td className="px-4 py-3 align-top">
                       {p.originalAmount ? (
                         <span className="text-xs text-muted-foreground line-through">
-                          {formatPrice(p.originalAmount / 100, p.currency)}
+                          {formatPrice(p.originalAmount, p.currency)}
                         </span>
                       ) : (
                         <span className="text-xs text-muted-foreground">-</span>
@@ -453,7 +451,7 @@ export function ProductsPageClient() {
                     <td className="px-4 py-3 align-top">
                       {p.amount > 0 ? (
                         <span className="text-sm font-medium">
-                          {formatPrice(p.amount / 100, p.currency)}
+                          {formatPrice(p.amount, p.currency)}
                         </span>
                       ) : (
                         <span className="text-xs text-muted-foreground">
@@ -508,260 +506,264 @@ export function ProductsPageClient() {
           {/* 内容区可滚动，避免小屏幕看不到底部按钮 */}
           <div className="flex-1 overflow-y-auto pr-2">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-2">
-            <div className="space-y-2">
-              <Label>商品ID（SKU）</Label>
-              <Input
-                value={form.sku}
-                onChange={(e) => handleChange('sku', e.target.value)}
-                placeholder="如：M001 / S001"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>名称</Label>
-              <Input
-                value={form.name}
-                onChange={(e) => handleChange('name', e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>类型</Label>
-              <select
-                className={cn(
-                  'flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
-                )}
-                value={form.productType}
-                onChange={(e) =>
-                  handleChange(
-                    'productType',
-                    e.target.value as ProductFormState['productType']
-                  )
-                }
-              >
-                <option value="subscription_plan">订阅计划</option>
-                <option value="credit_package">积分包</option>
-              </select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>原价（元）</Label>
-              <Input
-                type="number"
-                value={form.originalAmount}
-                onChange={(e) => handleChange('originalAmount', e.target.value)}
-                placeholder="例如：1999"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>优惠价（元）</Label>
-              <Input
-                type="number"
-                value={form.amount}
-                onChange={(e) => handleChange('amount', e.target.value)}
-                placeholder="例如：999"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>货币</Label>
-              <Input
-                value={form.currency}
-                onChange={(e) => handleChange('currency', e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>可购买用户</Label>
-              <select
-                className={cn(
-                  'flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
-                )}
-                value={form.targetMembershipCode}
-                onChange={(e) =>
-                  handleChange('targetMembershipCode', e.target.value)
-                }
-              >
-                <option value="all">全部用户</option>
-                <option value="personal">个人版用户</option>
-                <option value="business">商家版用户</option>
-                <option value="pro-seller">大卖版用户</option>
-              </select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>支付方式</Label>
-              <select
-                className={cn(
-                  'flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
-                )}
-                value={form.paymentType}
-                onChange={(e) =>
-                  handleChange(
-                    'paymentType',
-                    e.target.value as ProductFormState['paymentType']
-                  )
-                }
-              >
-                <option value="subscription">订阅</option>
-                <option value="one_time">一次性</option>
-              </select>
-            </div>
-            {form.paymentType === 'subscription' && (
               <div className="space-y-2">
-                <Label>订阅周期</Label>
+                <Label>商品ID（SKU）</Label>
+                <Input
+                  value={form.sku}
+                  onChange={(e) => handleChange('sku', e.target.value)}
+                  placeholder="如：M001 / S001"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>名称</Label>
+                <Input
+                  value={form.name}
+                  onChange={(e) => handleChange('name', e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>类型</Label>
                 <select
                   className={cn(
                     'flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
                   )}
-                  value={form.interval}
+                  value={form.productType}
                   onChange={(e) =>
                     handleChange(
-                      'interval',
-                      e.target.value as ProductFormState['interval']
+                      'productType',
+                      e.target.value as ProductFormState['productType']
                     )
                   }
                 >
-                  <option value="month">按月</option>
-                  <option value="year">按年</option>
+                  <option value="subscription_plan">订阅计划</option>
+                  <option value="credit_package">积分包</option>
                 </select>
               </div>
-            )}
 
-            <div className="space-y-2 md:col-span-2">
-              <Label>商品说明B1</Label>
-              <Textarea
-                value={form.description}
-                onChange={(e) => handleChange('description', e.target.value)}
-                rows={3}
-              />
-            </div>
+              <div className="space-y-2">
+                <Label>原价（元）</Label>
+                <Input
+                  type="number"
+                  value={form.originalAmount}
+                  onChange={(e) =>
+                    handleChange('originalAmount', e.target.value)
+                  }
+                  placeholder="例如：1999"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>优惠价（元）</Label>
+                <Input
+                  type="number"
+                  value={form.amount}
+                  onChange={(e) => handleChange('amount', e.target.value)}
+                  placeholder="例如：999"
+                />
+              </div>
 
-            <div className="space-y-2 md:col-span-2">
-              <Label>商品说明B2</Label>
-              <Textarea
-                value={form.description2}
-                onChange={(e) => handleChange('description2', e.target.value)}
-                rows={2}
-              />
-            </div>
+              <div className="space-y-2">
+                <Label>货币</Label>
+                <Input
+                  value={form.currency}
+                  onChange={(e) => handleChange('currency', e.target.value)}
+                />
+              </div>
 
-            <div className="space-y-2 md:col-span-2">
-              <Label>Stripe Price ID</Label>
-              <Input
-                value={form.stripePriceId}
-                onChange={(e) => handleChange('stripePriceId', e.target.value)}
-                placeholder="price_xxx（可为空，后续在 Stripe 配置）"
-              />
-            </div>
+              <div className="space-y-2">
+                <Label>可购买用户</Label>
+                <select
+                  className={cn(
+                    'flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
+                  )}
+                  value={form.targetMembershipCode}
+                  onChange={(e) =>
+                    handleChange('targetMembershipCode', e.target.value)
+                  }
+                >
+                  <option value="all">全部用户</option>
+                  <option value="personal">个人版用户</option>
+                  <option value="business">商家版用户</option>
+                  <option value="pro-seller">大卖版用户</option>
+                </select>
+              </div>
 
-            <div className="space-y-2">
-              <Label>排序（越小越靠前）</Label>
-              <Input
-                type="number"
-                value={form.sortOrder}
-                onChange={(e) => handleChange('sortOrder', e.target.value)}
-              />
-            </div>
-
-            <div className="flex items-center space-x-2 mt-6">
-              <Switch
-                checked={form.popular}
-                onCheckedChange={(v) => handleChange('popular', v)}
-              />
-              <Label className="cursor-pointer">推荐计划</Label>
-            </div>
-
-            <div className="flex items-center space-x-2 mt-6">
-              <Switch
-                checked={form.disabled}
-                onCheckedChange={(v) => handleChange('disabled', v)}
-              />
-              <Label className="cursor-pointer">禁用</Label>
-            </div>
-
-            <div className="space-y-2">
-              <Label>库存</Label>
-              <Input
-                type="number"
-                value={form.stock}
-                onChange={(e) => handleChange('stock', e.target.value)}
-                placeholder="可选，留空表示不限制"
-              />
-            </div>
-
-            {form.productType === 'subscription_plan' && (
-              <>
-                <div className="flex items-center space-x-2 mt-4">
-                  <Switch
-                    checked={form.isFree}
-                    onCheckedChange={(v) => handleChange('isFree', v)}
-                  />
-                  <Label className="cursor-pointer">免费计划</Label>
-                </div>
-                <div className="flex items-center space-x-2 mt-4">
-                  <Switch
-                    checked={form.isLifetime}
-                    onCheckedChange={(v) => handleChange('isLifetime', v)}
-                  />
-                  <Label className="cursor-pointer">终身计划</Label>
-                </div>
-                <div className="flex items-center space-x-2 mt-4">
-                  <Switch
-                    checked={form.creditsEnabled}
-                    onCheckedChange={(v) => handleChange('creditsEnabled', v)}
-                  />
-                  <Label className="cursor-pointer">启用每月积分</Label>
-                </div>
-                {form.creditsEnabled && (
-                  <>
-                    <div className="space-y-2">
-                      <Label>每月积分数量</Label>
-                      <Input
-                        type="number"
-                        value={form.creditsAmount}
-                        onChange={(e) =>
-                          handleChange('creditsAmount', e.target.value)
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>积分有效期（天）</Label>
-                      <Input
-                        type="number"
-                        value={form.creditsExpireDays}
-                        onChange={(e) =>
-                          handleChange('creditsExpireDays', e.target.value)
-                        }
-                      />
-                    </div>
-                  </>
-                )}
-              </>
-            )}
-
-            {form.productType === 'credit_package' && (
-              <>
+              <div className="space-y-2">
+                <Label>支付方式</Label>
+                <select
+                  className={cn(
+                    'flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
+                  )}
+                  value={form.paymentType}
+                  onChange={(e) =>
+                    handleChange(
+                      'paymentType',
+                      e.target.value as ProductFormState['paymentType']
+                    )
+                  }
+                >
+                  <option value="subscription">订阅</option>
+                  <option value="one_time">一次性</option>
+                </select>
+              </div>
+              {form.paymentType === 'subscription' && (
                 <div className="space-y-2">
-                  <Label>积分数量</Label>
-                  <Input
-                    type="number"
-                    value={form.packageAmount}
+                  <Label>订阅周期</Label>
+                  <select
+                    className={cn(
+                      'flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
+                    )}
+                    value={form.interval}
                     onChange={(e) =>
-                      handleChange('packageAmount', e.target.value)
+                      handleChange(
+                        'interval',
+                        e.target.value as ProductFormState['interval']
+                      )
                     }
-                  />
+                  >
+                    <option value="month">按月</option>
+                    <option value="year">按年</option>
+                  </select>
                 </div>
-                <div className="space-y-2">
-                  <Label>积分有效期（天）</Label>
-                  <Input
-                    type="number"
-                    value={form.packageExpireDays}
-                    onChange={(e) =>
-                      handleChange('packageExpireDays', e.target.value)
-                    }
-                  />
-                </div>
-              </>
-            )}
+              )}
+
+              <div className="space-y-2 md:col-span-2">
+                <Label>商品说明B1</Label>
+                <Textarea
+                  value={form.description}
+                  onChange={(e) => handleChange('description', e.target.value)}
+                  rows={3}
+                />
+              </div>
+
+              <div className="space-y-2 md:col-span-2">
+                <Label>商品说明B2</Label>
+                <Textarea
+                  value={form.description2}
+                  onChange={(e) => handleChange('description2', e.target.value)}
+                  rows={2}
+                />
+              </div>
+
+              <div className="space-y-2 md:col-span-2">
+                <Label>Stripe Price ID</Label>
+                <Input
+                  value={form.stripePriceId}
+                  onChange={(e) =>
+                    handleChange('stripePriceId', e.target.value)
+                  }
+                  placeholder="price_xxx（可为空，后续在 Stripe 配置）"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>排序（越小越靠前）</Label>
+                <Input
+                  type="number"
+                  value={form.sortOrder}
+                  onChange={(e) => handleChange('sortOrder', e.target.value)}
+                />
+              </div>
+
+              <div className="flex items-center space-x-2 mt-6">
+                <Switch
+                  checked={form.popular}
+                  onCheckedChange={(v) => handleChange('popular', v)}
+                />
+                <Label className="cursor-pointer">推荐计划</Label>
+              </div>
+
+              <div className="flex items-center space-x-2 mt-6">
+                <Switch
+                  checked={form.disabled}
+                  onCheckedChange={(v) => handleChange('disabled', v)}
+                />
+                <Label className="cursor-pointer">禁用</Label>
+              </div>
+
+              <div className="space-y-2">
+                <Label>库存</Label>
+                <Input
+                  type="number"
+                  value={form.stock}
+                  onChange={(e) => handleChange('stock', e.target.value)}
+                  placeholder="可选，留空表示不限制"
+                />
+              </div>
+
+              {form.productType === 'subscription_plan' && (
+                <>
+                  <div className="flex items-center space-x-2 mt-4">
+                    <Switch
+                      checked={form.isFree}
+                      onCheckedChange={(v) => handleChange('isFree', v)}
+                    />
+                    <Label className="cursor-pointer">免费计划</Label>
+                  </div>
+                  <div className="flex items-center space-x-2 mt-4">
+                    <Switch
+                      checked={form.isLifetime}
+                      onCheckedChange={(v) => handleChange('isLifetime', v)}
+                    />
+                    <Label className="cursor-pointer">终身计划</Label>
+                  </div>
+                  <div className="flex items-center space-x-2 mt-4">
+                    <Switch
+                      checked={form.creditsEnabled}
+                      onCheckedChange={(v) => handleChange('creditsEnabled', v)}
+                    />
+                    <Label className="cursor-pointer">启用每月积分</Label>
+                  </div>
+                  {form.creditsEnabled && (
+                    <>
+                      <div className="space-y-2">
+                        <Label>每月积分数量</Label>
+                        <Input
+                          type="number"
+                          value={form.creditsAmount}
+                          onChange={(e) =>
+                            handleChange('creditsAmount', e.target.value)
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>积分有效期（天）</Label>
+                        <Input
+                          type="number"
+                          value={form.creditsExpireDays}
+                          onChange={(e) =>
+                            handleChange('creditsExpireDays', e.target.value)
+                          }
+                        />
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
+
+              {form.productType === 'credit_package' && (
+                <>
+                  <div className="space-y-2">
+                    <Label>积分数量</Label>
+                    <Input
+                      type="number"
+                      value={form.packageAmount}
+                      onChange={(e) =>
+                        handleChange('packageAmount', e.target.value)
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>积分有效期（天）</Label>
+                    <Input
+                      type="number"
+                      value={form.packageExpireDays}
+                      onChange={(e) =>
+                        handleChange('packageExpireDays', e.target.value)
+                      }
+                    />
+                  </div>
+                </>
+              )}
             </div>
           </div>
 

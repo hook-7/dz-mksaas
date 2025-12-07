@@ -251,3 +251,50 @@ export const membershipTier = pgTable("membership_tier", {
 	membershipTierSortOrderIdx: index("membership_tier_sort_order_idx").on(table.sortOrder),
 }));
 
+/**
+ * Order table - 订单记录表
+ *
+ * 设计目标：
+ * - 每一笔支付成功的 Stripe 交易，对应一条订单记录
+ * - 通过 invoiceId / paymentId / stripeSessionId 与 payment 表、Stripe 对齐
+ * - 商品信息来自 product 表（通过 stripePriceId 反查）
+ */
+export const order = pgTable("order", {
+	id: text("id").primaryKey(),
+	// 业务订单号，对用户展示，如：FD2025101012345678
+	orderNo: text("order_no").notNull(),
+	userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+	// 商品信息（冗余字段，方便列表展示）
+	productId: text("product_id"),
+	productType: text("product_type"),
+	productName: text("product_name"),
+	quantity: integer("quantity").notNull().default(1),
+	// 金额字段（单位：最小货币单位，如“分”）
+	originalAmount: integer("original_amount").notNull(),
+	discountAmount: integer("discount_amount").notNull().default(0),
+	otherDiscountAmount: integer("other_discount_amount").default(0),
+	finalAmount: integer("final_amount").notNull(),
+	paidAmount: integer("paid_amount"),
+	currency: text("currency").notNull().default("USD"),
+	// 支付相关
+	paymentMethod: text("payment_method"), // 如：card / alipay / wechat_pay
+	paymentChannel: text("payment_channel").default("stripe"), // 支付渠道：stripe / offline 等
+	paymentStatus: text("payment_status").notNull().default("pending"), // pending / paid / failed / refunded
+	paymentId: text("payment_id"), // 关联 payment 表的 id
+	invoiceId: text("invoice_id"),
+	stripeSessionId: text("stripe_session_id"),
+	stripePaymentIntentId: text("stripe_payment_intent_id"),
+	// 额外业务信息（JSON 字符串，如传播参数、优惠信息等）
+	metadata: text("metadata"),
+	createdAt: timestamp("created_at").notNull().defaultNow(),
+	paidAt: timestamp("paid_at"),
+	updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => ({
+	orderUserIdIdx: index("order_user_id_idx").on(table.userId),
+	orderStatusIdx: index("order_status_idx").on(table.paymentStatus),
+	orderCreatedAtIdx: index("order_created_at_idx").on(table.createdAt),
+	orderInvoiceIdIdx: uniqueIndex("order_invoice_id_idx").on(table.invoiceId),
+	orderOrderNoIdx: uniqueIndex("order_order_no_idx").on(table.orderNo),
+	orderPaymentIdIdx: index("order_payment_id_idx").on(table.paymentId),
+}));
+

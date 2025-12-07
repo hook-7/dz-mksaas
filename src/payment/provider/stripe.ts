@@ -8,13 +8,14 @@ import {
 import { getCreditPackageById } from '@/credits/server';
 import { CREDIT_TRANSACTION_TYPE } from '@/credits/types';
 import { getDb } from '@/db';
-import { payment, user } from '@/db/schema';
+import { order, payment, user } from '@/db/schema';
 import type { Payment } from '@/db/types';
 import {
   PAYMENT_RECORD_RETRY_ATTEMPTS,
   PAYMENT_RECORD_RETRY_DELAY,
 } from '@/lib/constants';
 import { findPlanByPlanId, findPriceInPlan } from '@/lib/price-plan';
+import { getProductByStripePriceId } from '@/lib/product';
 import { sendNotification } from '@/notification/notification';
 import { desc, eq } from 'drizzle-orm';
 import { Stripe } from 'stripe';
@@ -605,6 +606,9 @@ export class StripeProvider implements PaymentProvider {
         // This is a one-time payment
         await this.updateOneTimePayment(invoice, paymentRecord);
       }
+
+      // 创建或更新订单记录
+      await this.createOrUpdateOrderFromInvoice(invoice, paymentRecord);
     } catch (error) {
       console.error('<< Handle invoice paid error:', error);
 
@@ -866,6 +870,160 @@ export class StripeProvider implements PaymentProvider {
     );
 
     console.log('<< Process lifetime plan purchase success');
+  }
+
+  /**
+   * Create or update order record when invoice is paid
+   * 每次 invoice.paid 事件都会调用，确保一张发票只生成一条订单
+   */
+  private async createOrUpdateOrderFromInvoice(
+    invoice: Stripe.Invoice,
+    paymentRecord: Payment
+  ): Promise<void> {
+    console.log('>> Create or update order for invoice:', invoice.id);
+
+    if (!invoice.id) {
+      console.warn('<< Invoice has no id, skip order creation');
+      return;
+    }
+
+    try {
+      const db = await getDb();
+
+      // 1. 查是否已经有对应发票的订单（幂等）
+      const existing = await db
+        .select({ id: order.id })
+        .from(order)
+        .where(eq(order.invoiceId, invoice.id))
+        .limit(1);
+
+      const now = new Date();
+      const quantity = invoice.lines?.data?.[0]?.quantity ?? 1;
+
+      // 2. 根据 priceId 反查产品信息（如果有的话）
+      const priceId = paymentRecord.priceId;
+      let productInfo: Awaited<
+        ReturnType<typeof getProductByStripePriceId>
+      > | null = null;
+
+      if (priceId) {
+        try {
+          productInfo = await getProductByStripePriceId(priceId);
+        } catch (err) {
+          console.error('getProductByStripePriceId error:', err);
+        }
+      }
+
+      const currency =
+        (invoice.currency?.toUpperCase() as string | undefined) ??
+        productInfo?.currency ??
+        'USD';
+
+      const productAmountTotal =
+        productInfo != null ? productInfo.amount * quantity : undefined;
+      const productOriginalAmountTotal =
+        productInfo?.originalAmount != null
+          ? productInfo.originalAmount * quantity
+          : undefined;
+
+      const finalAmount =
+        invoice.total ??
+        invoice.amount_due ??
+        invoice.amount_paid ??
+        productAmountTotal ??
+        0;
+
+      const originalAmount = productOriginalAmountTotal ?? finalAmount;
+      const otherDiscountAmount =
+        invoice.total_discount_amounts?.reduce(
+          (sum, d) => sum + (d.amount ?? 0),
+          0
+        ) ?? 0;
+      const discountAmount =
+        originalAmount > finalAmount ? originalAmount - finalAmount : 0;
+      const paidAmount = invoice.amount_paid ?? finalAmount;
+
+      const paidAt = this.getInvoicePaidAt(invoice) ?? now;
+      const createdAt = invoice.created
+        ? new Date(invoice.created * 1000)
+        : (paymentRecord.createdAt ?? now);
+
+      const stripePaymentIntentId = this.getInvoicePaymentIntentId(invoice);
+      const paymentMethod = await this.getPaymentMethodFromInvoice(invoice);
+
+      const metadataObject = invoice.metadata ?? {};
+      const cleanedMetadata: Record<string, string> = {};
+      for (const key of Object.keys(metadataObject)) {
+        const value = metadataObject[key];
+        if (typeof value === 'string') {
+          cleanedMetadata[key] = value;
+        }
+      }
+      const metadataJson =
+        Object.keys(cleanedMetadata).length > 0
+          ? JSON.stringify(cleanedMetadata)
+          : null;
+
+      if (existing.length > 0) {
+        // 已有订单，做一次状态&金额更新
+        await db
+          .update(order)
+          .set({
+            paymentStatus: 'paid',
+            finalAmount,
+            originalAmount,
+            discountAmount,
+            otherDiscountAmount,
+            paidAmount,
+            currency,
+            paymentMethod: paymentMethod ?? undefined,
+            paymentChannel: 'stripe',
+            paymentId: paymentRecord.id,
+            stripeSessionId: paymentRecord.sessionId ?? undefined,
+            stripePaymentIntentId: stripePaymentIntentId ?? undefined,
+            paidAt,
+            updatedAt: now,
+          })
+          .where(eq(order.id, existing[0].id));
+
+        console.log('<< Updated existing order for invoice:', invoice.id);
+        return;
+      }
+
+      // 3. 创建新订单
+      await db.insert(order).values({
+        id: randomUUID(),
+        orderNo: this.generateOrderNo(),
+        userId: paymentRecord.userId,
+        productId: productInfo?.id ?? null,
+        productType: (productInfo as any)?.productType ?? null,
+        productName: productInfo?.name ?? null,
+        quantity,
+        originalAmount,
+        discountAmount,
+        otherDiscountAmount,
+        finalAmount,
+        paidAmount,
+        currency,
+        paymentMethod: paymentMethod ?? undefined,
+        paymentChannel: 'stripe',
+        paymentStatus: 'paid',
+        paymentId: paymentRecord.id,
+        invoiceId: invoice.id,
+        stripeSessionId: paymentRecord.sessionId ?? undefined,
+        stripePaymentIntentId: stripePaymentIntentId ?? undefined,
+        metadata: metadataJson ?? undefined,
+        createdAt,
+        paidAt,
+        updatedAt: now,
+      });
+
+      console.log('<< Created order for invoice:', invoice.id);
+    } catch (error) {
+      console.error('<< Create or update order error:', error);
+      // 抛出错误让 Stripe 重试，避免数据不一致
+      throw error;
+    }
   }
 
   /**
@@ -1274,5 +1432,77 @@ export class StripeProvider implements PaymentProvider {
       s?.items?.data?.[0]?.current_period_end ??
       undefined;
     return typeof endUnix === 'number' ? new Date(endUnix * 1000) : undefined;
+  }
+
+  /**
+   * 从 invoice 中提取支付完成时间
+   */
+  private getInvoicePaidAt(invoice: Stripe.Invoice): Date | undefined {
+    const paidAtUnix = invoice.status_transitions?.paid_at;
+    if (typeof paidAtUnix === 'number') {
+      return new Date(paidAtUnix * 1000);
+    }
+    return undefined;
+  }
+
+  /**
+   * 从 invoice 中提取 payment_intent id
+   */
+  private getInvoicePaymentIntentId(
+    invoice: Stripe.Invoice
+  ): string | undefined {
+    if (!invoice.payment_intent) {
+      return undefined;
+    }
+    if (typeof invoice.payment_intent === 'string') {
+      return invoice.payment_intent;
+    }
+    return invoice.payment_intent.id;
+  }
+
+  /**
+   * 获取支付方式（card/alipay/wechat_pay 等）
+   */
+  private async getPaymentMethodFromInvoice(
+    invoice: Stripe.Invoice
+  ): Promise<string | undefined> {
+    const paymentIntentId = this.getInvoicePaymentIntentId(invoice);
+    if (!paymentIntentId) {
+      return undefined;
+    }
+
+    try {
+      const paymentIntent =
+        await this.stripe.paymentIntents.retrieve(paymentIntentId);
+      // payment_method_types: ['card'] / ['alipay'] / ['wechat_pay'] ...
+      if (
+        Array.isArray(paymentIntent.payment_method_types) &&
+        paymentIntent.payment_method_types.length > 0
+      ) {
+        return paymentIntent.payment_method_types[0];
+      }
+    } catch (error) {
+      console.error('getPaymentMethodFromInvoice error:', error);
+    }
+
+    return undefined;
+  }
+
+  /**
+   * 生成业务订单号：FD + yyyyMMddHHmmss + 4位随机数
+   */
+  private generateOrderNo(): string {
+    const now = new Date();
+    const pad = (n: number, width: number) => n.toString().padStart(width, '0');
+
+    const y = now.getFullYear();
+    const m = pad(now.getMonth() + 1, 2);
+    const d = pad(now.getDate(), 2);
+    const hh = pad(now.getHours(), 2);
+    const mm = pad(now.getMinutes(), 2);
+    const ss = pad(now.getSeconds(), 2);
+    const rand = pad(Math.floor(Math.random() * 10000), 4);
+
+    return `FD${y}${m}${d}${hh}${mm}${ss}${rand}`;
   }
 }

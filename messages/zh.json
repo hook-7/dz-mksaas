@@ -643,6 +643,40 @@
           "deleteFailed": "产品删除失败",
           "deleteConfirm": "确定要删除产品「{name}」吗？此操作不可恢复。"
         }
+      },
+      "orders": {
+        "title": "订单管理",
+        "description": "查看和管理系统内的所有订单记录。",
+        "filters": {
+          "status": "订单状态",
+          "dateRange": "时间范围",
+          "search": "搜索订单号 / 用户ID / 商品名称...",
+          "clear": "清除筛选"
+        },
+        "status": {
+          "all": "全部",
+          "pending": "待支付",
+          "paid": "已支付",
+          "failed": "支付失败",
+          "refunded": "已退款"
+        },
+        "columns": {
+          "orderNo": "订单编号",
+          "userId": "用户ID",
+          "productName": "商品名称",
+          "productType": "商品类型",
+          "quantity": "数量",
+          "originalAmount": "原价",
+          "discountAmount": "优惠",
+          "otherDiscountAmount": "其他优惠",
+          "finalAmount": "应付金额",
+          "paidAmount": "实付金额",
+          "currency": "币种",
+          "paymentMethod": "支付方式",
+          "paymentStatus": "状态",
+          "createdAt": "创建时间",
+          "paidAt": "支付时间"
+        }
       }
     },
     "settings": {

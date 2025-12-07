@@ -2,6 +2,7 @@ import {
   account,
   creditTransaction,
   inviteLink,
+  order,
   payment,
   session,
   storeUserRelationship,
@@ -19,3 +20,4 @@ export type UserCredit = typeof userCredit.$inferSelect;
 export type CreditTransaction = typeof creditTransaction.$inferSelect;
 export type StoreUserRelationship = typeof storeUserRelationship.$inferSelect;
 export type InviteLink = typeof inviteLink.$inferSelect;
+export type Order = typeof order.$inferSelect;

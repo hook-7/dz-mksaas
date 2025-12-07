@@ -1,6 +1,6 @@
 /**
  * Format a price for display
- * @param price Price amount in currency units (dollars, euros, etc.)
+ * @param price Price amount in smallest currency unit (cents, fen, etc.)
  * @param currency Currency code
  * @returns Formatted price string
  */
@@ -11,7 +11,7 @@ export function formatPrice(price: number, currency: string): string {
     minimumFractionDigits: 0,
   });
 
-  return formatter.format(price / 100); // Convert from cents to dollars
+  return formatter.format(price / 100); // Convert from smallest unit to currency units
 }
 
 /**
