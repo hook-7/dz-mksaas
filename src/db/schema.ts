@@ -184,6 +184,8 @@ export const shop = pgTable("shop", {
  */
 export const product = pgTable("product", {
 	id: text("id").primaryKey(),
+	// 商品ID（如 M001 / S001），用于运营配置和对照设计稿
+	sku: text("sku"),
 	name: text("name").notNull(), // 产品名称
 	description: text("description"), // 产品描述
 	productType: text("product_type").notNull(), // ProductTypes.SUBSCRIPTION_PLAN | ProductTypes.CREDIT_PACKAGE
@@ -191,6 +193,10 @@ export const product = pgTable("product", {
 	// subscription_plan: { isFree, isLifetime, credits: { enable, amount, expireDays } }
 	// credit_package: { amount, expireDays }
 	config: text("config"), // JSON 格式的配置
+	// 目标会员等级限制（如：all | personal | business | pro-seller）
+	targetMembershipCode: text("target_membership_code"),
+	// 额外说明字段，用于在列表中展示商品说明B2
+	description2: text("description2"),
 	// 价格信息
 	stripePriceId: text("stripe_price_id"), // Stripe Price ID (可以为空，后续配置)
 	amount: integer("amount").notNull(), // 价格金额（以最小货币单位，如分）
@@ -205,9 +211,12 @@ export const product = pgTable("product", {
 	popular: boolean("popular").notNull().default(false), // 是否推荐
 	disabled: boolean("disabled").notNull().default(false), // 是否禁用
 	sortOrder: integer("sort_order").notNull().default(0), // 排序顺序
+	// 库存（仅用于展示与风控，Stripe 侧不做硬限制）
+	stock: integer("stock"),
 	createdAt: timestamp("created_at").notNull().defaultNow(),
 	updatedAt: timestamp("updated_at").notNull().defaultNow(),
 }, (table) => ({
+	productSkuIdx: index("product_sku_idx").on(table.sku),
 	productTypeIdx: index("product_type_idx").on(table.productType),
 	productDisabledIdx: index("product_disabled_idx").on(table.disabled),
 	productSortOrderIdx: index("product_sort_order_idx").on(table.sortOrder),

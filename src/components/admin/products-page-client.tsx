@@ -29,14 +29,18 @@ import { toast } from 'sonner';
 
 interface ProductFormState {
   id?: string;
+  sku: string;
   name: string;
   description: string;
+  description2: string;
   productType: 'subscription_plan' | 'credit_package';
-  amount: string; // 货币单位，字符串方便输入
+  originalAmount: string; // 原价（元）
+  amount: string; // 优惠价（元）
   currency: string;
   paymentType: 'subscription' | 'one_time';
   interval: 'month' | 'year' | '';
   stripePriceId: string;
+  targetMembershipCode: string;
   popular: boolean;
   disabled: boolean;
   sortOrder: string;
@@ -49,19 +53,24 @@ interface ProductFormState {
   // credit_package
   packageAmount: string;
   packageExpireDays: string;
+  stock: string;
 }
 
 function productToFormState(product?: ProductInfo): ProductFormState {
   if (!product) {
     return {
+      sku: '',
       name: '',
       description: '',
+      description2: '',
       productType: 'subscription_plan',
+      originalAmount: '',
       amount: '0',
       currency: 'CNY',
       paymentType: 'subscription',
       interval: 'year',
       stripePriceId: '',
+      targetMembershipCode: 'all',
       popular: false,
       disabled: false,
       sortOrder: '0',
@@ -72,6 +81,7 @@ function productToFormState(product?: ProductInfo): ProductFormState {
       creditsExpireDays: '30',
       packageAmount: '0',
       packageExpireDays: '30',
+      stock: '',
     };
   }
 
@@ -80,14 +90,21 @@ function productToFormState(product?: ProductInfo): ProductFormState {
 
   return {
     id: product.id,
+    sku: product.sku || '',
     name: product.name,
     description: product.description || '',
+    description2: product.description2 || '',
     productType: product.productType,
+    originalAmount:
+      typeof product.originalAmount === 'number'
+        ? (product.originalAmount / 100).toString()
+        : '',
     amount: (product.amount / 100).toString(),
     currency: product.currency,
     paymentType: product.paymentType,
     interval: (product.interval as 'month' | 'year') || '',
     stripePriceId: product.stripePriceId || '',
+    targetMembershipCode: product.targetMembershipCode || 'all',
     popular: product.popular,
     disabled: product.disabled,
     sortOrder: product.sortOrder.toString(),
@@ -98,6 +115,10 @@ function productToFormState(product?: ProductInfo): ProductFormState {
     creditsExpireDays: (config.credits?.expireDays ?? 30).toString(),
     packageAmount: (config.amount ?? 0).toString(),
     packageExpireDays: (config.expireDays ?? 30).toString(),
+    stock:
+      typeof product.stock === 'number' && !Number.isNaN(product.stock)
+        ? product.stock.toString()
+        : '',
   };
 }
 
@@ -215,9 +236,12 @@ export function ProductsPageClient() {
   const handleSubmit = () => {
     const payload = {
       id: form.id,
+      sku: form.sku.trim() || null,
       name: form.name.trim(),
       description: form.description.trim() || undefined,
+      description2: form.description2.trim() || undefined,
       productType: form.productType,
+      originalAmount: normalizeNumber(form.originalAmount, 0),
       amount: normalizeNumber(form.amount, 0),
       currency: form.currency.trim() || 'CNY',
       paymentType: form.paymentType,
@@ -226,6 +250,7 @@ export function ProductsPageClient() {
           ? form.interval
           : null,
       stripePriceId: form.stripePriceId.trim() || null,
+      targetMembershipCode: form.targetMembershipCode || 'all',
       popular: form.popular,
       disabled: form.disabled,
       sortOrder: normalizeNumber(form.sortOrder, 0),
@@ -236,6 +261,10 @@ export function ProductsPageClient() {
       creditsExpireDays: normalizeNumber(form.creditsExpireDays, 30),
       packageAmount: normalizeNumber(form.packageAmount, 0),
       packageExpireDays: normalizeNumber(form.packageExpireDays, 30),
+      stock:
+        form.stock.trim() === ''
+          ? undefined
+          : normalizeNumber(form.stock, 0),
     };
 
     if (!payload.name) {
@@ -299,7 +328,7 @@ export function ProductsPageClient() {
             <thead className="bg-muted sticky top-0 z-10">
               <tr>
                 <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground">
-                  ID
+                  商品ID
                 </th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground">
                   名称
@@ -308,16 +337,22 @@ export function ProductsPageClient() {
                   类型
                 </th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground">
-                  价格
+                  可购买用户
                 </th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground">
-                  支付方式
+                  商品说明B1
                 </th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground">
-                  Stripe Price ID
+                  商品说明B2
                 </th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground">
-                  状态
+                  原价
+                </th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground">
+                  优惠价
+                </th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground">
+                  库存
                 </th>
                 <th className="px-4 py-2 text-right text-xs font-medium text-muted-foreground">
                   操作
@@ -328,7 +363,7 @@ export function ProductsPageClient() {
               {isLoading ? (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={9}
                     className="px-4 py-6 text-center text-xs text-muted-foreground"
                   >
                     {t('messages.loading', { defaultValue: '加载中...' })}
@@ -337,7 +372,7 @@ export function ProductsPageClient() {
               ) : sortedProducts.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={9}
                     className="px-4 py-6 text-center text-xs text-muted-foreground"
                   >
                     {t('messages.empty', { defaultValue: '暂无产品。' })}
@@ -345,14 +380,19 @@ export function ProductsPageClient() {
                 </tr>
               ) : (
                 sortedProducts.map((p, index) => (
-                  <tr
+                    <tr
                     key={p.id}
                     className={cn('border-t', index % 2 === 1 && 'bg-muted/20')}
                   >
                     <td className="px-4 py-3 align-top max-w-[160px] truncate">
-                      <span className="text-[11px] text-muted-foreground">
-                        {p.id}
-                      </span>
+                        <div className="flex flex-col gap-1">
+                          <span className="text-xs font-medium">
+                            {p.sku || '-'}
+                          </span>
+                          <span className="text-[11px] text-muted-foreground break-all">
+                            {p.id}
+                          </span>
+                        </div>
                     </td>
                     <td className="px-4 py-3 align-top">
                       <div className="flex flex-col gap-1">
@@ -377,6 +417,40 @@ export function ProductsPageClient() {
                       </Badge>
                     </td>
                     <td className="px-4 py-3 align-top">
+                      <span className="text-xs text-muted-foreground">
+                        {p.targetMembershipCode === 'personal'
+                          ? '个人版用户'
+                          : p.targetMembershipCode === 'business'
+                            ? '商家版用户'
+                            : p.targetMembershipCode === 'pro-seller'
+                              ? '大卖版用户'
+                              : '全部用户'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 align-top max-w-[260px]">
+                      {p.description && (
+                        <span className="text-xs text-muted-foreground line-clamp-2">
+                          {p.description}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 align-top max-w-[260px]">
+                      {p.description2 && (
+                        <span className="text-xs text-muted-foreground line-clamp-2">
+                          {p.description2}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 align-top">
+                      {p.originalAmount ? (
+                        <span className="text-xs text-muted-foreground line-through">
+                          {formatPrice(p.originalAmount / 100, p.currency)}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">-</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 align-top">
                       {p.amount > 0 ? (
                         <span className="text-sm font-medium">
                           {formatPrice(p.amount / 100, p.currency)}
@@ -389,38 +463,10 @@ export function ProductsPageClient() {
                     </td>
                     <td className="px-4 py-3 align-top">
                       <span className="text-xs text-muted-foreground">
-                        {p.paymentType === 'subscription' ? '订阅' : '一次性'}
-                        {p.paymentType === 'subscription' && p.interval && (
-                          <span>
-                            {p.interval === 'month' ? ' / 月' : ' / 年'}
-                          </span>
-                        )}
+                        {typeof p.stock === 'number' && !Number.isNaN(p.stock)
+                          ? p.stock
+                          : '—'}
                       </span>
-                    </td>
-                    <td className="px-4 py-3 align-top max-w-[200px] truncate">
-                      <span className="text-[11px] text-muted-foreground">
-                        {p.stripePriceId || '-'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 align-top">
-                      <div className="flex flex-col gap-1 text-xs text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                          <Badge
-                            variant={p.disabled ? 'outline' : 'default'}
-                            className="px-2 py-0.5 text-[11px]"
-                          >
-                            {p.disabled ? '已禁用' : '启用'}
-                          </Badge>
-                          {p.popular && (
-                            <Badge
-                              variant="secondary"
-                              className="px-2 py-0.5 text-[11px]"
-                            >
-                              推荐
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
                     </td>
                     <td className="px-4 py-3 align-top text-right space-x-2">
                       <Button
@@ -450,7 +496,7 @@ export function ProductsPageClient() {
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>
               {isEditMode
@@ -459,7 +505,17 @@ export function ProductsPageClient() {
             </DialogTitle>
           </DialogHeader>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-2">
+          {/* 内容区可滚动，避免小屏幕看不到底部按钮 */}
+          <div className="flex-1 overflow-y-auto pr-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-2">
+            <div className="space-y-2">
+              <Label>商品ID（SKU）</Label>
+              <Input
+                value={form.sku}
+                onChange={(e) => handleChange('sku', e.target.value)}
+                placeholder="如：M001 / S001"
+              />
+            </div>
             <div className="space-y-2">
               <Label>名称</Label>
               <Input
@@ -487,19 +543,48 @@ export function ProductsPageClient() {
             </div>
 
             <div className="space-y-2">
-              <Label>价格金额（元）</Label>
+              <Label>原价（元）</Label>
+              <Input
+                type="number"
+                value={form.originalAmount}
+                onChange={(e) => handleChange('originalAmount', e.target.value)}
+                placeholder="例如：1999"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>优惠价（元）</Label>
               <Input
                 type="number"
                 value={form.amount}
                 onChange={(e) => handleChange('amount', e.target.value)}
+                placeholder="例如：999"
               />
             </div>
+
             <div className="space-y-2">
               <Label>货币</Label>
               <Input
                 value={form.currency}
                 onChange={(e) => handleChange('currency', e.target.value)}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label>可购买用户</Label>
+              <select
+                className={cn(
+                  'flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
+                )}
+                value={form.targetMembershipCode}
+                onChange={(e) =>
+                  handleChange('targetMembershipCode', e.target.value)
+                }
+              >
+                <option value="all">全部用户</option>
+                <option value="personal">个人版用户</option>
+                <option value="business">商家版用户</option>
+                <option value="pro-seller">大卖版用户</option>
+              </select>
             </div>
 
             <div className="space-y-2">
@@ -542,11 +627,20 @@ export function ProductsPageClient() {
             )}
 
             <div className="space-y-2 md:col-span-2">
-              <Label>产品描述</Label>
+              <Label>商品说明B1</Label>
               <Textarea
                 value={form.description}
                 onChange={(e) => handleChange('description', e.target.value)}
                 rows={3}
+              />
+            </div>
+
+            <div className="space-y-2 md:col-span-2">
+              <Label>商品说明B2</Label>
+              <Textarea
+                value={form.description2}
+                onChange={(e) => handleChange('description2', e.target.value)}
+                rows={2}
               />
             </div>
 
@@ -582,6 +676,16 @@ export function ProductsPageClient() {
                 onCheckedChange={(v) => handleChange('disabled', v)}
               />
               <Label className="cursor-pointer">禁用</Label>
+            </div>
+
+            <div className="space-y-2">
+              <Label>库存</Label>
+              <Input
+                type="number"
+                value={form.stock}
+                onChange={(e) => handleChange('stock', e.target.value)}
+                placeholder="可选，留空表示不限制"
+              />
             </div>
 
             {form.productType === 'subscription_plan' && (
@@ -658,9 +762,10 @@ export function ProductsPageClient() {
                 </div>
               </>
             )}
+            </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="mt-2">
             <Button
               variant="outline"
               className="cursor-pointer"

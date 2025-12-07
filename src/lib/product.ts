@@ -46,8 +46,12 @@ export interface CreditPackageConfig {
  */
 export interface ProductInfo {
   id: string;
+  // 商品ID（如 M001 / S001），可选
+  sku?: string | null;
   name: string;
   description: string | null;
+  // 额外说明字段，用于列表中的“商品说明B2”
+  description2?: string | null;
   productType: ProductType;
   config: SubscriptionPlanConfig | CreditPackageConfig | null;
   // 价格信息
@@ -64,6 +68,10 @@ export interface ProductInfo {
   popular: boolean;
   disabled: boolean;
   sortOrder: number;
+  // 目标会员等级限制（all | personal | business | pro-seller）
+  targetMembershipCode?: string | null;
+  // 库存
+  stock?: number | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -97,8 +105,10 @@ export async function getAllProducts(
 
   return products.map((p) => ({
     id: p.id,
+    sku: p.sku,
     name: p.name,
     description: p.description,
+    description2: (p as any).description2 ?? null,
     productType: p.productType as ProductType,
     config: p.config ? JSON.parse(p.config) : null,
     stripePriceId: p.stripePriceId,
@@ -113,6 +123,8 @@ export async function getAllProducts(
     popular: p.popular,
     disabled: p.disabled,
     sortOrder: p.sortOrder,
+    targetMembershipCode: (p as any).targetMembershipCode ?? null,
+    stock: (p as any).stock ?? null,
     createdAt: p.createdAt,
     updatedAt: p.updatedAt,
   }));
@@ -139,8 +151,10 @@ export async function getProductById(
 
   return {
     id: productRecord.id,
+    sku: productRecord.sku,
     name: productRecord.name,
     description: productRecord.description,
+    description2: (productRecord as any).description2 ?? null,
     productType: productRecord.productType as ProductType,
     config: productRecord.config ? JSON.parse(productRecord.config) : null,
     stripePriceId: productRecord.stripePriceId,
@@ -155,6 +169,8 @@ export async function getProductById(
     popular: productRecord.popular,
     disabled: productRecord.disabled,
     sortOrder: productRecord.sortOrder,
+    targetMembershipCode: (productRecord as any).targetMembershipCode ?? null,
+    stock: (productRecord as any).stock ?? null,
     createdAt: productRecord.createdAt,
     updatedAt: productRecord.updatedAt,
   };
@@ -264,5 +280,9 @@ export function productToCreditPackage(
     popular: productInfo.popular,
     expireDays: config?.expireDays,
     disabled: productInfo.disabled,
+    targetMembershipCode: productInfo.targetMembershipCode ?? null,
+    sku: productInfo.sku ?? null,
+    description2: productInfo.description2 ?? null,
+    stock: productInfo.stock ?? null,
   };
 }

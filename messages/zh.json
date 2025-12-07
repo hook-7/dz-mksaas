@@ -533,12 +533,12 @@
     },
     "mallCenter": {
       "title": "商城中心",
-      "description": "购买会员及优惠券",
+      "description": "购买会员及积分",
       "brandName": "某秘",
       "productName": "达助",
       "tabs": {
         "membership": "会员购买",
-        "coupons": "样品券购买"
+        "coupons": "积分购买"
       },
       "coupons": {
         "buyNow": "立即抢购",

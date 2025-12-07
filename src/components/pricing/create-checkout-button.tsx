@@ -97,9 +97,10 @@ export function CheckoutButton({
           Object.keys(mergedMetadata).length > 0 ? mergedMetadata : undefined,
       });
 
-      // Redirect to checkout page
+      // Redirect to checkout page - open in new tab/window
       if (result?.data?.success && result.data.data?.url) {
-        window.location.href = result.data.data?.url;
+        const url = result.data.data.url;
+        window.open(url, '_blank', 'noopener,noreferrer');
       } else {
         console.error('Create checkout session error, result:', result);
         toast.error(t('checkoutFailed'));

@@ -14,17 +14,22 @@ import { z } from 'zod';
 // 公共的产品输入 schema（用于创建和更新）
 const productInputSchema = z.object({
   id: z.string().optional(), // 更新时必填，创建时忽略
+  sku: z.string().optional().nullable(), // 商品ID，如 M001 / S001
   name: z.string().min(1),
   description: z.string().optional().nullable(),
+  description2: z.string().optional().nullable(),
   productType: z.enum(['subscription_plan', 'credit_package']),
+  originalAmount: z.number().nonnegative().optional(), // 原价（元）
   amount: z.number().nonnegative(), // 以货币单位（元/美元）传入
   currency: z.string().min(1),
   paymentType: z.enum(['subscription', 'one_time']),
   interval: z.enum(['month', 'year']).optional().nullable(),
   stripePriceId: z.string().optional().nullable(),
+  targetMembershipCode: z.string().optional().nullable(), // 可购买会员等级限制
   popular: z.boolean().optional(),
   disabled: z.boolean().optional(),
   sortOrder: z.number().optional(),
+  stock: z.number().optional(),
   // 订阅计划特定字段
   isFree: z.boolean().optional(),
   isLifetime: z.boolean().optional(),
@@ -145,6 +150,10 @@ export const createProductAction = adminActionClient
       const db = await getDb();
 
       const amountInCents = Math.round(parsedInput.amount * 100);
+      const originalAmountInCents =
+        typeof parsedInput.originalAmount === 'number'
+          ? Math.round(parsedInput.originalAmount * 100)
+          : null;
       const interval =
         parsedInput.paymentType === 'subscription'
           ? (parsedInput.interval ?? 'month')
@@ -159,8 +168,10 @@ export const createProductAction = adminActionClient
 
       await db.insert(product).values({
         id,
+        sku: parsedInput.sku?.trim() || null,
         name: parsedInput.name,
         description: parsedInput.description ?? null,
+        description2: parsedInput.description2 ?? null,
         productType: parsedInput.productType,
         config,
         stripePriceId,
@@ -170,11 +181,13 @@ export const createProductAction = adminActionClient
         interval,
         trialPeriodDays: null,
         allowPromotionCode: false,
-        originalAmount: null,
+        originalAmount: originalAmountInCents,
         discountRate: null,
         popular: !!parsedInput.popular,
         disabled: !!parsedInput.disabled,
         sortOrder: parsedInput.sortOrder ?? 0,
+        targetMembershipCode: parsedInput.targetMembershipCode ?? 'all',
+        stock: typeof parsedInput.stock === 'number' ? parsedInput.stock : null,
       });
 
       return {
@@ -200,6 +213,10 @@ export const updateProductAction = adminActionClient
       const db = await getDb();
 
       const amountInCents = Math.round(parsedInput.amount * 100);
+      const originalAmountInCents =
+        typeof parsedInput.originalAmount === 'number'
+          ? Math.round(parsedInput.originalAmount * 100)
+          : null;
       const interval =
         parsedInput.paymentType === 'subscription'
           ? (parsedInput.interval ?? 'month')
@@ -213,8 +230,10 @@ export const updateProductAction = adminActionClient
       await db
         .update(product)
         .set({
+          sku: parsedInput.sku?.trim() || null,
           name: parsedInput.name,
           description: parsedInput.description ?? null,
+          description2: parsedInput.description2 ?? null,
           productType: parsedInput.productType,
           config,
           stripePriceId,
@@ -222,9 +241,13 @@ export const updateProductAction = adminActionClient
           currency: parsedInput.currency,
           paymentType: parsedInput.paymentType,
           interval,
+          originalAmount: originalAmountInCents,
           popular: !!parsedInput.popular,
           disabled: !!parsedInput.disabled,
           sortOrder: parsedInput.sortOrder ?? 0,
+          targetMembershipCode: parsedInput.targetMembershipCode ?? 'all',
+          stock:
+            typeof parsedInput.stock === 'number' ? parsedInput.stock : null,
           updatedAt: new Date(),
         })
         .where(eq(product.id, parsedInput.id));

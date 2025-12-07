@@ -1,6 +1,11 @@
 'use client';
 
+import { LoginWrapper } from '@/components/auth/login-wrapper';
+import { CheckoutButton } from '@/components/pricing/create-checkout-button';
 import { Button } from '@/components/ui/button';
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { useMounted } from '@/hooks/use-mounted';
+import { useLocalePathname } from '@/i18n/navigation';
 import { cn } from '@/lib/utils';
 import { CheckCircle2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -228,11 +233,26 @@ function renderCell(value: string, isHighlighted: boolean) {
 interface PricingTableProps {
   className?: string;
   onPurchase?: (plan: { name: string; price: string }) => void;
+  // 由服务端注入的 planId -> Stripe Price 映射
+  planStripePrices?: Record<
+    string,
+    {
+      planId: string;
+      priceId: string;
+    }
+  >;
 }
 
-export function PricingTable({ className, onPurchase }: PricingTableProps) {
+export function PricingTable({
+  className,
+  onPurchase,
+  planStripePrices,
+}: PricingTableProps) {
   const t = useTranslations('Dashboard.mallCenter.coupons');
   const tMall = useTranslations('Dashboard.mallCenter');
+  const currentUser = useCurrentUser();
+  const currentPath = useLocalePathname();
+  const mounted = useMounted();
 
   return (
     <div
@@ -274,6 +294,12 @@ export function PricingTable({ className, onPurchase }: PricingTableProps) {
               {displayPlanOrder.map((planId) => {
                 const plan = plans[planId];
                 const isHighlighted = planId === highlightedPlanId;
+                const isSupreme = plan.id === 'supreme';
+                const isTrial = plan.id === 'trial';
+                const stripePrice =
+                  !isSupreme && !isTrial && planStripePrices
+                    ? planStripePrices[plan.id]
+                    : null;
 
                 return (
                   <th
@@ -287,8 +313,7 @@ export function PricingTable({ className, onPurchase }: PricingTableProps) {
                   >
                     <div className="flex flex-col h-full justify-between gap-6">
                       <div>
-                        {' '}
-                        {/* Added missing wrapper div */}
+                        {/* 推荐角标 */}
                         {isHighlighted ? (
                           <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-primary to-primary/80 px-4 py-1 text-xs font-bold text-primary-foreground shadow-lg ring-2 ring-background">
                             推荐
@@ -307,7 +332,6 @@ export function PricingTable({ className, onPurchase }: PricingTableProps) {
                           </div>
 
                           <div className="flex items-baseline justify-center gap-1">
-                            {' '}
                             <span
                               className={cn(
                                 'text-3xl font-extrabold tracking-tight',
@@ -340,37 +364,91 @@ export function PricingTable({ className, onPurchase }: PricingTableProps) {
                               {plan.highlightNote}
                             </div>
                           ) : (
-                            <div className="h-6" /> 
+                            <div className="h-6" />
                           )}
                         </div>
-                      </div>{' '}
-                      {/* Closing div for the missing wrapper */}
-                      {onPurchase &&
-                        (plan.id === 'supreme' ? (
-                          <div className="flex items-center justify-center h-10">
-                            <span className="text-sm text-muted-foreground">
-                              -
-                            </span>
-                          </div>
+                      </div>
+
+                      {/* 操作按钮区域 */}
+                      {isSupreme ? (
+                        <div className="flex items-center justify-center h-10">
+                          <span className="text-sm text-muted-foreground">
+                            -
+                          </span>
+                        </div>
+                      ) : isTrial ? (
+                        onPurchase ? (
+                          <Button
+                            className={cn(
+                              'w-full font-semibold shadow-sm transition-all'
+                            )}
+                            variant="outline"
+                            size="default"
+                            onClick={() =>
+                              onPurchase({
+                                name: plan.name,
+                                price: plan.price,
+                              })
+                            }
+                          >
+                            {t('registerNow')}
+                          </Button>
                         ) : (
                           <Button
+                            className="w-full font-semibold shadow-sm"
+                            variant="outline"
+                            size="default"
+                            disabled
+                          >
+                            {t('registerNow')}
+                          </Button>
+                        )
+                      ) : stripePrice ? (
+                        mounted && currentUser ? (
+                          <CheckoutButton
+                            userId={currentUser.id}
+                            planId={stripePrice.planId}
+                            priceId={stripePrice.priceId}
                             className={cn(
                               'w-full font-semibold shadow-sm transition-all',
                               isHighlighted &&
                                 'shadow-primary/25 hover:shadow-primary/40'
                             )}
-                            variant={
-                              plan.id === 'trial' ? 'outline' : 'default'
-                            }
+                            variant="default"
                             size="default"
-                            onClick={() => onPurchase(plan)}
                           >
-                            {plan.id === 'trial'
-                              ? t('registerNow')
-                              : t('buyNow')}
-                          </Button>
-                        ))}
-                    </div>{' '}
+                            {t('buyNow')}
+                          </CheckoutButton>
+                        ) : (
+                          <LoginWrapper
+                            mode="modal"
+                            asChild
+                            callbackUrl={currentPath}
+                          >
+                            <Button
+                              className={cn(
+                                'w-full font-semibold shadow-sm transition-all',
+                                isHighlighted &&
+                                  'shadow-primary/25 hover:shadow-primary/40'
+                              )}
+                              variant="default"
+                              size="default"
+                            >
+                              {t('buyNow')}
+                            </Button>
+                          </LoginWrapper>
+                        )
+                      ) : (
+                        <Button
+                          className="w-full font-semibold shadow-sm"
+                          variant="default"
+                          size="default"
+                          disabled
+                        >
+                          {t('buyNow')}
+                        </Button>
+                      )}
+                    </div>
                   </th>
                 );
               })}

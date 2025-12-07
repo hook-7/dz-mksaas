@@ -40,10 +40,14 @@ export function CreditPackages({ creditPackages }: CreditPackagesProps) {
   );
   const currentPlan = paymentData?.currentPlan;
 
-  // 过滤掉已禁用或没有 priceId 的积分包
-  const visiblePackages = creditPackages.filter(
-    (pkg) => !pkg.disabled && pkg.price.priceId
-  );
+  // 过滤掉已禁用或没有 priceId 的积分包，并根据会员等级筛选
+  const membershipCode = currentPlan?.id || 'free';
+  const visiblePackages = creditPackages.filter((pkg) => {
+    if (pkg.disabled || !pkg.price.priceId) return false;
+    const limit = pkg.targetMembershipCode || 'all';
+    if (limit === 'all') return true;
+    return limit === membershipCode;
+  });
 
   // Don't render anything while loading to prevent flash
   if (isLoadingPayment) {

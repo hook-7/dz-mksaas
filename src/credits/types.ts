@@ -35,6 +35,14 @@ export interface CreditPackage {
   description?: string;                // Description of the package
   expireDays?: number;                 // Number of days to expire the credits, undefined means default 30 days
   disabled?: boolean;                  // Whether the package is disabled in the UI
+  // 会员等级限制：all | free | personal | business | pro-seller
+  targetMembershipCode?: string | null;
+  // 商品ID（如 S001），用于展示
+  sku?: string | null;
+  // 额外说明字段，用于商城展示
+  description2?: string | null;
+  // 库存
+  stock?: number | null;
 }
 
 /**
