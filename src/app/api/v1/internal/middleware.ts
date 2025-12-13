@@ -42,6 +42,19 @@ export async function verifyRequestSignature(request: NextRequest): Promise<{
     };
   }
 
+  // 2.1 兼容加密请求：客户端签名的 body 是 encrypted_data（不是完整 JSON）
+  // - EncryptedApiClient / Postman 脚本都是对 encrypted_data 做签名
+  // - 兼容：如果不是加密格式，就保持原始 body
+  let bodyForSignature = body;
+  try {
+    const parsed = JSON.parse(body) as { encrypted_data?: unknown };
+    if (typeof parsed?.encrypted_data === 'string') {
+      bodyForSignature = parsed.encrypted_data;
+    }
+  } catch {
+    // ignore: body 不是 JSON
+  }
+
   // 3. 验证签名
   const timestampNum = Number.parseInt(timestamp, 10);
   if (Number.isNaN(timestampNum)) {
@@ -63,7 +76,7 @@ export async function verifyRequestSignature(request: NextRequest): Promise<{
   const isValid = verifySignature(
     timestampNum,
     nonce,
-    body,
+    bodyForSignature,
     signature,
     secretKey,
     5 * 60 * 1000 // 5 分钟有效期
@@ -121,7 +134,7 @@ export function errorResponse(
       msg: message,
       data: null,
     },
-    { status: code >= 500 ? 500 : code >= 400 ? 400 : 200 }
+    { status: code }
   );
 }
 
